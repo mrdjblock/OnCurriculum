@@ -469,6 +469,7 @@ var state = {
   contentCache: {},     // course codename -> sections array
   expPanels: {},        // course codename -> rendered "Overall & specific expectations" panel element
   selectExpTab: {},      // course codename -> function that switches that course to the expectations tab
+  expVer: {}, filterVer: 0, deepHay: null, // per-course filter version (stale panels refresh when opened); cached search text
   ensureCourseBuilt: {}, // course codename -> function that synchronously builds the course body if not built yet
   deepNodes: null,      // course codename -> { exp: [text of each overall/specific expectation], prompts: [text of each teacher prompt/example box] }
   deepIndex: null,      // course codename -> lowercase plain text (only when deep search loaded)
@@ -690,7 +691,10 @@ function stripHighlights(root){
 }
 
 function highlightWordsIn(root, words){
-  if (!words || !words.length) return;
+  // One- and two-letter fragments (typed while someone is still mid-word) would match
+  // almost every word on the page and create hundreds of thousands of <mark> elements.
+  words = (words || []).filter(function(w){ return w.length >= 3; });
+  if (!words.length) return;
   var re = new RegExp("(" + words.map(function(w){ return w.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&"); }).join("|") + ")", "ig");
   var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
   var textNodes = [];
@@ -775,6 +779,7 @@ function unhideExpectations(panelExp){
 function applyExpFilterFor(cn){
   var panelExp = state.expPanels[cn];
   if (!panelExp) return;
+  state.expVer[cn] = state.filterVer;
   if (state.deepIndex && state.parsed.words && state.parsed.words.length){
     var any = filterExpectationsInCourse(panelExp);
     // Term wasn't concentrated in any single expectation — fall back to showing all of
@@ -787,8 +792,14 @@ function applyExpFilterFor(cn){
   }
 }
 
+// Only courses that are currently showing and expanded are re-filtered/re-highlighted.
+// The rest are left stale and caught up the moment they are opened (see renderCourse).
 function refreshExpFilters(){
-  Object.keys(state.expPanels).forEach(applyExpFilterFor);
+  Object.keys(state.expPanels).forEach(function(cn){
+    var el = state.expPanels[cn].closest(".course");
+    if (!el || el.hidden || !el.open) return;
+    applyExpFilterFor(cn);
+  });
 }
 
 function svgChevron(){
@@ -1101,7 +1112,11 @@ function renderCourse(cn){
   // synchronous for a direct user click), so code that programmatically opens a course
   // and immediately needs its body built (e.g. jumping straight to a search match) can't
   // rely on this listener alone — it also calls state.ensureCourseBuilt[cn]() directly.
-  det.addEventListener("toggle", function(){ if (det.open) ensureBuilt(); });
+  det.addEventListener("toggle", function(){
+    if (!det.open) return;
+    ensureBuilt();
+    if (state.expPanels[cn] && state.expVer[cn] !== state.filterVer) applyExpFilterFor(cn);
+  });
   state.ensureCourseBuilt[cn] = ensureBuilt;
   det.appendChild(body);
   return det;
@@ -1402,8 +1417,7 @@ function matches(cn){
   }
   if (!parsed.words.length) return true;
 
-  var hay = course._blob;
-  if (state.deepIndex && state.deepIndex[cn]) hay = hay + " " + state.deepIndex[cn];
+  var hay = (state.deepHay && state.deepHay[cn]) || course._blob;
 
   return parsed.words.every(function(w){
     // A word that names a specific subject (e.g. "english", "science") must match this
@@ -1444,10 +1458,22 @@ function countMatching(texts, words){
   return n;
 }
 
+var AUTO_OPEN_MAX = 40; // don't auto-expand (and build) more courses than this at once
+
 function applyFilter(){
+  state.filterVer++;
   refreshAllDropdowns();
-  refreshExpFilters();
   var active = anyFilterActive();
+  // Count first so a very broad search (e.g. a single letter) doesn't open hundreds of courses.
+  var autoOpenOK = false;
+  if (active){
+    var nMatch = 0;
+    Object.keys(state.courses).forEach(function(cn){
+      var c = state.courses[cn];
+      if ((!state.filters.level.size || state.filters.level.has(c._level)) && matches(cn)) nMatch++;
+    });
+    autoOpenOK = nMatch <= AUTO_OPEN_MAX;
+  }
   var visibleCourses = 0, visibleSubjects = 0;
   // While searching expectation text, grade headers report matching expectations and
   // teacher prompts instead of a subject count.
@@ -1480,7 +1506,7 @@ function applyFilter(){
             gradeExp += countMatching(dn.exp, state.parsed.words);
             gradePrompts += countMatching(dn.prompts, state.parsed.words);
           }
-          if (active){
+          if (active && autoOpenOK){
             var wasOpen = courseEl.open;
             courseEl.open = true;
             if (!wasOpen){
@@ -1516,6 +1542,7 @@ function applyFilter(){
   });
 
   state.wasActive = active;
+  refreshExpFilters();
   var metaEl = document.getElementById("searchMeta");
   if (!active){ metaEl.textContent = ""; return; }
   var desc = "<b>" + visibleCourses + "</b> course" + (visibleCourses===1?"":"s") + " in <b>" + visibleSubjects + "</b> subject" + (visibleSubjects===1?"":"s");
@@ -1582,6 +1609,9 @@ function loadDeepIndex(){
       idx[o.cn] = extractText(o.sections);
       nodes[o.cn] = collectNodes(o.sections);
     });
+    var hay = {};
+    Object.keys(idx).forEach(function(cn){ if (state.courses[cn]) hay[cn] = state.courses[cn]._blob + " " + idx[cn]; });
+    state.deepHay = hay;
     state.deepNodes = nodes;
     state.deepIndex = idx;
     state.deepLoading = false;
@@ -1602,20 +1632,28 @@ function loadDeepIndex(){
 function wireControls(){
   var input = document.getElementById("search");
   var clearBtn = document.getElementById("clearSearch");
+  // Wait for a brief pause in typing before filtering, so a fast typist (or someone
+  // replacing highlighted text) triggers one pass instead of one per keystroke.
+  var searchTimer = null;
   input.addEventListener("input", function(){
-    var raw = input.value.trim();
-    state.query = raw.toLowerCase();
-    state.parsed = tokenizeQuery(raw);
     clearBtn.hidden = !input.value;
-    applyFilter();
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(function(){
+      var raw = input.value.trim();
+      state.query = raw.toLowerCase();
+      state.parsed = tokenizeQuery(raw);
+      applyFilter();
+    }, 220);
   });
   clearBtn.addEventListener("click", function(){
+    clearTimeout(searchTimer);
     input.value = ""; state.query = ""; state.parsed = { grades: [], words: [] }; clearBtn.hidden = true; applyFilter(); input.focus();
   });
   document.getElementById("deepBtn").addEventListener("click", function(){
     if (state.deepIndex){
       state.deepIndex = null;
       state.deepNodes = null;
+      state.deepHay = null;
       this.setAttribute("aria-pressed", "false"); this.setAttribute("aria-checked", "false");
       document.getElementById("deepBtnLabel").textContent = "Also search expectation text";
       applyFilter();
