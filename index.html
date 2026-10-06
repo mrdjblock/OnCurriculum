@@ -1,0 +1,1668 @@
+<!doctype html><html lang="en"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><title>Ontario Secondary Curriculum</title></head><body>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+/* ---------- tokens ---------- */
+:root{
+  --bg:#eef1f4;
+  --surface:#ffffff;
+  --surface-2:#e7ebef;
+  --surface-3:#dde3e8;
+  --border:#cfd8de;
+  --ink:#182027;
+  --ink-2:#48545e;
+  --ink-3:#76828c;
+  --accent:#0f4a56;
+  --accent-ink:#ffffff;
+  --accent-soft:#dcebe9;
+  --code-bg:#e6ebee;
+  --notice-bg:#fcf1de;
+  --notice-ink:#7a4a11;
+  --notice-border:#ecd2a1;
+  --focus:#0f4a56;
+  --shadow:0 1px 2px rgba(20,30,36,.06), 0 6px 20px -8px rgba(20,30,36,.18);
+
+  --c-math:#A92D2D; --c-science_and_tech_science:#934E2F; --c-tech_ed_secondary:#997029;
+  --c-computer_studies:#A39D33; --c-language_english_francais:#7C9929; --c-fsl:#59932F;
+  --c-classical_and_intl_lang:#3AA92D; --c-native_languages:#2F9344; --c-asl_and_lsq:#299964;
+  --c-esl:#33A391; --c-canadian_and_world_studies:#298799; --c-social_sciences:#2F6493;
+  --c-fnmi:#2D47A9; --c-arts:#392F93; --c-business_studies_secondary:#582999;
+  --c-career_studies:#8533A3; --c-hpe:#992993; --c-cooperative_education:#932F6E;
+  --c-interdisciplinary_studies:#A92D54;
+
+  --font-display:'Source Serif 4',Georgia,'Times New Roman',serif;
+  --font-body:'Public Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  --font-mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121820; --surface:#1a222b; --surface-2:#212a34; --surface-3:#28323d;
+    --border:#38434e; --ink:#e8edf1; --ink-2:#aebac4; --ink-3:#7c8a96;
+    --accent:#57cdbf; --accent-ink:#08211d; --accent-soft:#1c3936;
+    --code-bg:#232d37; --notice-bg:#3a2d15; --notice-ink:#f0c481; --notice-border:#5b4420;
+    --focus:#57cdbf;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -8px rgba(0,0,0,.5);
+    --c-math:#D88383; --c-science_and_tech_science:#D49F87; --c-tech_ed_secondary:#D8B983;
+    --c-computer_studies:#D4D087; --c-language_english_francais:#C2D883; --c-fsl:#A7D487;
+    --c-classical_and_intl_lang:#8CD883; --c-native_languages:#87D497; --c-asl_and_lsq:#83D8B0;
+    --c-esl:#87D4C8; --c-canadian_and_world_studies:#83CBD8; --c-social_sciences:#87AFD4;
+    --c-fnmi:#8395D8; --c-arts:#8F87D4; --c-business_studies_secondary:#A783D8;
+    --c-career_studies:#BF87D4; --c-hpe:#D883D4; --c-cooperative_education:#D487B7;
+    --c-interdisciplinary_studies:#D8839E;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121820; --surface:#1a222b; --surface-2:#212a34; --surface-3:#28323d;
+  --border:#38434e; --ink:#e8edf1; --ink-2:#aebac4; --ink-3:#7c8a96;
+  --accent:#57cdbf; --accent-ink:#08211d; --accent-soft:#1c3936;
+  --code-bg:#232d37; --notice-bg:#3a2d15; --notice-ink:#f0c481; --notice-border:#5b4420;
+  --focus:#57cdbf;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -8px rgba(0,0,0,.5);
+  --c-math:#D88383; --c-science_and_tech_science:#D49F87; --c-tech_ed_secondary:#D8B983;
+  --c-computer_studies:#D4D087; --c-language_english_francais:#C2D883; --c-fsl:#A7D487;
+  --c-classical_and_intl_lang:#8CD883; --c-native_languages:#87D497; --c-asl_and_lsq:#83D8B0;
+  --c-esl:#87D4C8; --c-canadian_and_world_studies:#83CBD8; --c-social_sciences:#87AFD4;
+  --c-fnmi:#8395D8; --c-arts:#8F87D4; --c-business_studies_secondary:#A783D8;
+  --c-career_studies:#BF87D4; --c-hpe:#D883D4; --c-cooperative_education:#D487B7;
+  --c-interdisciplinary_studies:#D8839E;
+}
+
+*{box-sizing:border-box;}
+body{
+  margin:0; background:var(--bg); color:var(--ink); font-family:var(--font-body);
+  padding-inline:16px; padding-block:0 48px; -webkit-font-smoothing:antialiased;
+}
+a{color:var(--accent);}
+::selection{background:var(--accent-soft);}
+:focus-visible{outline:2.5px solid var(--focus); outline-offset:2px; border-radius:4px;}
+
+.wrap{max-width:920px; margin:0 auto;}
+
+/* ---------- header ---------- */
+header.top{padding-top:22px; padding-bottom:4px;}
+.toolbar{
+  position:sticky; top:0; z-index:20; background:var(--bg);
+  padding:10px 0 10px; margin-bottom:6px;
+  border-bottom:1px solid var(--border);
+}
+.toolbar .filterrow{margin-top:9px;}
+.toolbar .searchmeta{margin-top:7px; min-height:0;}
+.toolbar .searchmeta:empty{display:none;}
+h1{
+  font-family:var(--font-display); font-weight:700; font-size:clamp(1.5rem,1.1rem + 1.6vw,2.1rem);
+  margin:0 0 4px; letter-spacing:-.01em; text-wrap:balance;
+}
+.tagline{
+  color:var(--ink-2); font-size:.94rem; margin:0 0 14px; line-height:1.5;
+  max-width:62ch;
+}
+.tagline a{color:var(--ink-2); text-decoration-color:var(--border);}
+.stats{display:flex; flex-wrap:wrap; gap:6px 14px; color:var(--ink-3); font-size:.78rem; margin:0 0 6px; font-variant-numeric:tabular-nums;}
+.stats b{color:var(--ink-2); font-weight:600;}
+
+.searchrow{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+.searchbox{
+  position:relative; flex:1 1 260px; min-width:0;
+}
+.searchbox input{
+  width:100%; font:inherit; font-size:.96rem; padding:11px 14px 11px 38px;
+  border-radius:10px; border:1.5px solid var(--border); background:var(--surface); color:var(--ink);
+}
+.searchbox input::placeholder{color:var(--ink-3);}
+.searchbox svg{position:absolute; left:12px; top:50%; transform:translateY(-50%); width:16px; height:16px; color:var(--ink-3); pointer-events:none;}
+.clearbtn{
+  position:absolute; right:8px; top:50%; transform:translateY(-50%);
+  border:none; background:none; color:var(--ink-3); cursor:pointer; padding:6px; border-radius:6px; font-size:1.1rem; line-height:1;
+}
+.clearbtn:hover{background:var(--surface-2);}
+
+.deepbtn{
+  display:inline-flex; align-items:center; gap:10px; font:inherit; font-size:.84rem; font-weight:600;
+  padding:7px 8px 7px 13px; border-radius:999px; border:1.5px solid var(--border); background:var(--surface); color:var(--ink-2);
+  cursor:pointer; white-space:nowrap;
+}
+.deepbtn:hover{border-color:var(--ink-3);}
+.deepbtn:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+.deepbtn .track{
+  position:relative; flex:none; width:46px; height:26px; border-radius:999px; background:var(--surface-3);
+  box-shadow:inset 0 0 0 1.5px var(--border); transition:background .18s ease;
+}
+.deepbtn .knob{
+  position:absolute; top:3px; left:3px; width:20px; height:20px; border-radius:50%; background:#fff;
+  box-shadow:0 1px 3px rgba(0,0,0,.35); transition:transform .18s ease;
+}
+.deepbtn[aria-pressed="true"]{color:var(--ink);}
+.deepbtn[aria-pressed="true"] .track{background:#44a6b5; box-shadow:none;}
+.deepbtn[aria-pressed="true"] .knob{transform:translateX(20px);}
+@media (prefers-reduced-motion:reduce){.deepbtn .track,.deepbtn .knob{transition:none;}}
+.deepbtn .spin{width:13px; height:13px; border:2px solid currentColor; border-right-color:transparent; border-radius:50%; animation:spin .7s linear infinite; display:none;}
+.deepbtn.loading .spin{display:inline-block;}
+@keyframes spin{to{transform:rotate(360deg);}}
+@media (prefers-reduced-motion:reduce){.deepbtn .spin{animation:none;}}
+
+.filterrow{display:flex; gap:9px; flex-wrap:wrap; margin-top:11px; position:relative; z-index:10;}
+.filterdd{position:relative;}
+.ddbtn{
+  display:inline-flex; align-items:center; gap:7px; font:inherit; font-size:.82rem; font-weight:600;
+  padding:8px 12px; border-radius:9px; border:1.5px solid var(--border); background:var(--surface);
+  color:var(--ink-2); cursor:pointer; white-space:nowrap;
+}
+.ddbtn[aria-expanded="true"]{border-color:var(--accent); color:var(--ink);}
+.ddbtn svg{width:10px; height:10px; flex:none; color:var(--ink-3); transition:transform .15s ease;}
+.ddbtn[aria-expanded="true"] svg{transform:rotate(180deg);}
+.ddcount{
+  font-size:.7rem; font-weight:700; background:var(--accent); color:var(--accent-ink);
+  border-radius:100px; min-width:16px; height:16px; padding:0 5px; display:inline-flex; align-items:center;
+  justify-content:center; font-variant-numeric:tabular-nums;
+}
+.ddpanel{
+  position:absolute; top:calc(100% + 6px); left:0; z-index:30; width:max-content; min-width:230px; max-width:320px;
+  background:var(--surface); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow);
+  padding:8px; display:flex; flex-direction:column; gap:2px;
+}
+.ddlist{display:flex; flex-direction:column; gap:1px; max-height:280px; overflow-y:auto; padding:2px;}
+.ddopt{
+  display:flex; align-items:center; gap:9px; padding:7px 8px; border-radius:8px; cursor:pointer; font-size:.85rem;
+}
+.ddopt:hover{background:var(--surface-2);}
+.ddopt input[type="checkbox"]{flex:none; width:15px; height:15px; accent-color:var(--accent); cursor:pointer;}
+.ddopt.dd-disabled{opacity:.4;}
+.ddopt.dd-disabled:hover{background:none;}
+.ddopt.dd-nomatch{opacity:.55;}
+.ddempty{padding:10px 12px; font-size:.82rem; color:var(--ink-3);}
+.ddopt.dd-disabled input[type="checkbox"],
+.ddopt.dd-disabled .ddopt-label,
+.ddopt.dd-disabled .ddopt-text{cursor:not-allowed;}
+.ddcolor{width:8px; height:8px; border-radius:50%; flex:none; background:var(--accent-c,var(--accent));}
+.ddopt-text{flex:1 1 auto; min-width:0; display:flex; flex-direction:column; line-height:1.3;}
+.ddopt-label{color:var(--ink); font-weight:500;}
+.ddopt-sub{font-size:.72rem; color:var(--ink-3);}
+.ddopt-n{font-size:.74rem; color:var(--ink-3); flex:none; font-variant-numeric:tabular-nums;}
+.ddactions{display:flex; gap:8px; margin-top:6px; padding-top:8px; border-top:1px solid var(--border);}
+.ddclear{
+  font:inherit; font-size:.8rem; font-weight:600; padding:8px 10px; border-radius:8px; border:1.5px solid var(--border);
+  background:none; color:var(--ink-2); cursor:pointer;
+}
+.ddclear:hover{background:var(--surface-2);}
+.ddapply{
+  flex:1; font:inherit; font-size:.82rem; font-weight:700; padding:8px 10px; border-radius:8px; border:none;
+  background:var(--accent); color:var(--accent-ink); cursor:pointer;
+}
+
+.searchmeta{font-size:.8rem; color:var(--ink-3); margin-top:9px; min-height:1.2em;}
+.searchmeta b{color:var(--ink-2);}
+
+/* ---------- legend ---------- */
+.legend{display:flex; flex-wrap:wrap; gap:14px; font-size:.78rem; color:var(--ink-3); margin:14px 0 4px;}
+.legend span{display:inline-flex; align-items:center; gap:6px;}
+.dot{width:8px; height:8px; border-radius:50%; display:inline-block; background:var(--accent);}
+.dot.doc{background:none; border:1.5px solid var(--ink-3);}
+
+/* ---------- accordion shell ---------- */
+main{margin-top:18px; display:flex; flex-direction:column; gap:14px;}
+
+details{border-radius:14px; background:var(--surface); border:1px solid var(--border); overflow:hidden; box-shadow:var(--shadow);}
+details[hidden]{display:none;}
+details > summary{list-style:none; cursor:pointer;}
+details > summary::-webkit-details-marker{display:none;}
+.chev{width:11px; height:11px; flex:none; transition:transform .15s ease; color:var(--ink-3);}
+details[open] > summary .chev{transform:rotate(90deg);}
+@media (prefers-reduced-motion:reduce){.chev{transition:none;}}
+
+/* grade level */
+.grade{}
+.grade > summary{
+  display:flex; align-items:center; gap:12px; padding:16px 20px;
+  font-family:var(--font-display); font-weight:700; font-size:1.22rem;
+}
+.grade > summary .count{margin-left:auto; font-family:var(--font-body); font-weight:600; font-size:.78rem; color:var(--ink-3); font-variant-numeric:tabular-nums;}
+.grade-body{padding:6px 12px 14px; display:flex; flex-direction:column; gap:10px;}
+
+/* subject level */
+.subject{border-radius:11px; border:1px solid var(--border); background:var(--surface); overflow:hidden;}
+.subject[hidden]{display:none;}
+.subject > summary{
+  display:flex; align-items:center; gap:11px; padding:12px 14px;
+  border-left:5px solid var(--accent-c, var(--accent));
+  background:var(--surface-2);
+}
+.subject-title{font-weight:700; font-size:.98rem;}
+.subject-year{font-size:.72rem; color:var(--ink-3); font-weight:500;}
+.subject > summary .count{margin-left:auto; font-size:.76rem; color:var(--ink-3); font-weight:600; font-variant-numeric:tabular-nums;}
+.subject-body{padding:10px 12px 14px; display:flex; flex-direction:column; gap:8px;}
+
+.pdflist{display:flex; flex-wrap:wrap; gap:7px; padding:2px 2px 4px;}
+.pdfchip{
+  display:inline-flex; align-items:center; gap:6px; font-size:.76rem; font-weight:600;
+  padding:6px 10px; border-radius:8px; background:var(--surface-3); color:var(--ink-2);
+  text-decoration:none; border:1px solid var(--border);
+}
+.pdfchip:hover{border-color:var(--accent-c,var(--accent)); color:var(--ink);}
+.pdfchip svg{width:12px; height:12px; flex:none;}
+
+.pdfbtn{
+  display:inline-flex; align-items:center; gap:5px; font-size:.72rem; font-weight:700;
+  padding:5px 9px; border-radius:7px; background:var(--accent-soft); color:var(--accent-c,var(--accent));
+  text-decoration:none; border:1px solid transparent; flex:none; letter-spacing:.02em;
+  font-family:inherit; cursor:pointer;
+}
+.pdfbtn:hover{border-color:var(--accent-c,var(--accent));}
+.pdfbtn svg{width:11px; height:11px; flex:none;}
+.pdfbtns{display:inline-flex; gap:5px; flex-wrap:wrap; flex:none; align-items:center;}
+.subj-orig{margin-left:10px;}
+.subject > summary .subj-orig + .count{margin-left:auto;}
+.pdfbtn.combined-doc{background:var(--surface-3); color:var(--ink-2); border-color:var(--border);}
+.pdfbtn.combined-doc:hover{color:var(--ink);}
+.csvnote{font-size:.8rem; color:var(--ink-2); background:var(--surface-3); border:1px solid var(--border); border-radius:8px; padding:8px 10px; margin:0 0 10px;}
+.pdfbtn.combined{background:none; border:1px dashed var(--border); color:var(--ink-3);}
+.pdfbtn.combined:hover{border-color:var(--ink-3); color:var(--ink-2);}
+
+/* ---------- PDF viewer modal (for locally-published split PDFs) ---------- */
+.pdfmodal-backdrop{
+  position:fixed; inset:0; background:rgba(10,14,18,.55); z-index:200;
+  display:none; align-items:center; justify-content:center; padding:18px;
+}
+.pdfmodal-backdrop.open{display:flex;}
+.pdfmodal{
+  background:var(--surface); border-radius:14px; box-shadow:var(--shadow);
+  width:min(920px,100%); height:min(92vh,1200px); display:flex; flex-direction:column; overflow:hidden;
+}
+.pdfmodal-head{
+  display:flex; align-items:center; gap:10px; padding:11px 14px; border-bottom:1px solid var(--border); flex:none;
+}
+.pdfmodal-title{font-weight:700; font-size:.86rem; color:var(--ink); flex:1 1 auto; min-width:0;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.pdfmodal-open{
+  font-size:.78rem; font-weight:600; color:var(--accent); text-decoration:none; flex:none; padding:4px 8px; border-radius:6px;
+}
+.pdfmodal-open:hover{background:var(--surface-2);}
+.pdfmodal-close{
+  font:inherit; font-size:1.3rem; line-height:1; border:none; background:none; color:var(--ink-3);
+  cursor:pointer; padding:2px 9px; border-radius:6px; flex:none;
+}
+.pdfmodal-close:hover{background:var(--surface-2); color:var(--ink);}
+.pdfmodal-frame{flex:1 1 auto; border:none; width:100%; background:#fff;}
+
+/* course level */
+.course{border-radius:9px; border:1px solid var(--border); background:var(--surface);}
+.course[hidden]{display:none;}
+.course > summary{
+  display:flex; align-items:center; gap:10px; padding:10px 12px; flex-wrap:wrap;
+}
+.code{
+  font-family:var(--font-mono); font-size:.78rem; font-weight:600; color:var(--accent-c,var(--accent));
+  background:var(--code-bg); padding:3px 7px; border-radius:6px; flex:none; letter-spacing:.02em;
+}
+.cname{font-weight:600; font-size:.93rem; flex:1 1 auto; min-width:0;}
+.badge-doc{
+  font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em;
+  color:var(--notice-ink); background:var(--notice-bg); border:1px solid var(--notice-border);
+  padding:2px 7px; border-radius:100px; flex:none;
+}
+.credit{font-size:.72rem; color:var(--ink-3); flex:none; font-variant-numeric:tabular-nums;}
+.course-body{padding:2px 16px 16px 16px; border-top:1px solid var(--border);}
+
+.desc{font-size:.88rem; color:var(--ink-2); line-height:1.55; margin:12px 0 0;}
+.metaline{font-size:.78rem; color:var(--ink-3); margin-top:8px; display:flex; flex-wrap:wrap; gap:4px 16px;}
+.metaline b{color:var(--ink-2); font-weight:600;}
+
+.notice{
+  margin-top:12px; padding:10px 13px; border-radius:9px; background:var(--notice-bg); color:var(--notice-ink);
+  border:1px solid var(--notice-border); font-size:.82rem; line-height:1.5;
+}
+
+.tabs{display:flex; gap:4px; margin-top:14px; border-bottom:1px solid var(--border);}
+.tab{
+  font:inherit; font-size:.8rem; font-weight:600; color:var(--ink-3); background:none; border:none;
+  padding:8px 4px; margin-right:14px; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px;
+}
+.tab[aria-selected="true"]{color:var(--ink); border-bottom-color:var(--accent-c,var(--accent));}
+.tabpanel{padding-top:12px;}
+.tabpanel[hidden]{display:none;}
+
+.loading-row{display:flex; align-items:center; gap:9px; color:var(--ink-3); font-size:.82rem; padding:14px 2px;}
+.loading-row .spin{width:13px; height:13px; border:2px solid currentColor; border-right-color:transparent; border-radius:50%; animation:spin .7s linear infinite;}
+
+/* frontmatter nodes */
+mark.sehit{background:var(--accent-soft); color:inherit; border-radius:3px; padding:0 2px; font-weight:700;}
+
+.fm-node{margin-top:10px;}
+.fm-node > .fm-head{font-weight:700; font-size:.86rem; margin-bottom:4px;}
+.fm-node[data-nested="1"] > .fm-head{font-size:.82rem; color:var(--ink-2);}
+.fm-html{font-size:.85rem; color:var(--ink-2); line-height:1.6;}
+.fm-html p{margin:.5em 0;}
+.fm-html ul,.fm-html ol{margin:.4em 0; padding-left:1.3em;}
+.fm-children{margin-left:14px; border-left:2px solid var(--border); padding-left:12px; margin-top:8px;}
+details.fm-toggle{border:none; background:none; box-shadow:none; border-radius:0;}
+details.fm-toggle > summary{padding:4px 0; display:flex; gap:6px; align-items:center; font-weight:700; font-size:.86rem;}
+
+/* strand / OE / SE */
+.strand{border:1px solid var(--border); border-radius:9px; margin-top:10px; background:var(--surface-2);}
+.strand > summary{display:flex; align-items:center; gap:9px; padding:10px 12px; font-weight:700; font-size:.87rem;}
+.strand-idx{
+  font-family:var(--font-mono); font-size:.72rem; background:var(--accent-c,var(--accent)); color:var(--accent-ink);
+  padding:2px 7px; border-radius:6px; flex:none;
+}
+.strand-body{padding:2px 12px 12px 40px; display:flex; flex-direction:column; gap:9px;}
+.strand-lead{font-size:.78rem; font-style:italic; color:var(--ink-3); margin:8px 0 0;}
+
+.oe{border-left:2.5px solid var(--accent-c,var(--accent)); padding-left:12px;}
+.oe-head{display:flex; gap:8px; font-size:.85rem; font-weight:700; align-items:baseline;}
+.oe-idx{font-family:var(--font-mono); font-size:.72rem; color:var(--accent-c,var(--accent)); flex:none;}
+.oe-text{color:var(--ink); font-weight:600;}
+.oe-text p{margin:0;}
+.oe-lead{font-size:.76rem; font-style:italic; color:var(--ink-3); margin:2px 0 6px;}
+
+.selist{list-style:none; margin:6px 0 0; padding:0; display:flex; flex-direction:column; gap:7px;}
+.se{display:flex; gap:8px; font-size:.84rem; line-height:1.55; color:var(--ink-2);}
+.se-idx{font-family:var(--font-mono); font-size:.71rem; color:var(--ink-3); flex:none; padding-top:.2em;}
+.se-main{flex:1; min-width:0;}
+.se-main p{margin:0;}
+.se-main em{color:var(--ink);}
+
+.elabs{margin-top:5px; display:flex; flex-direction:column; gap:5px;}
+.elab-toggle{
+  font:inherit; font-size:.72rem; font-weight:600; color:var(--accent-c,var(--accent)); background:var(--accent-soft);
+  border:none; border-radius:6px; padding:3px 9px; cursor:pointer;
+}
+.elab-body{
+  font-size:.79rem; border-left:2px solid var(--border); padding:6px 0 6px 10px; margin-top:5px; color:var(--ink-3);
+}
+.elab-label{font-weight:700; color:var(--ink-2); display:block; margin-bottom:2px; font-size:.72rem; text-transform:uppercase; letter-spacing:.03em;}
+
+.empty-state{padding:40px 20px; text-align:center; color:var(--ink-3); font-size:.9rem;}
+
+footer{margin-top:34px; padding-top:18px; border-top:1px solid var(--border); font-size:.76rem; color:var(--ink-3); line-height:1.6;}
+footer a{color:var(--ink-3);}
+
+@media (max-width:520px){
+  .grade > summary{font-size:1.05rem; padding:13px 14px;}
+  .searchrow{flex-direction:column; align-items:stretch;}
+  .searchbox{flex:none;}
+}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <h1>Ontario Secondary Curriculum</h1>
+    <p class="tagline">A searchable directory of Ontario Grade 9&ndash;12 curriculum courses, featuring overall and specific expectations and Curriculum PDF downloads.</p>
+    <div class="stats" id="stats">Loading curriculum data&hellip;</div>
+  </header>
+  <div class="toolbar">
+    <div class="searchrow">
+      <div class="searchbox">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input id="search" type="text" placeholder="Search by grade, subject, code or topic&mldr; try &ldquo;grade 9 geography&rdquo;" autocomplete="off" aria-label="Search curriculum">
+        <button class="clearbtn" id="clearSearch" hidden aria-label="Clear search">&times;</button>
+      </div>
+      <button class="deepbtn" id="deepBtn" role="switch" aria-checked="false" aria-pressed="false" type="button">
+        <span class="spin"></span><span id="deepBtnLabel">Also search expectation text</span>
+        <span class="track" aria-hidden="true"><span class="knob"></span></span>
+      </button>
+    </div>
+    <div class="filterrow" id="filterRow"></div>
+    <div class="searchmeta" id="searchMeta"></div>
+  </div>
+
+  <main id="main">
+    <div class="loading-row"><span class="spin"></span> Loading subjects and courses from the curriculum database&hellip;</div>
+  </main>
+
+  <footer>
+    Sourced from the Ontario Ministry of Education's De-streamed Curriculum Portal (dcp.edu.gov.on.ca), current as published. Curriculum text is reproduced for reference; consult the official Ministry site for the authoritative version. Built as a study &amp; planning reference &mdash; not an official Ministry publication. The PDF button on each course opens that course's own pages, extracted from the official Ministry curriculum document; the &ldquo;Full document&rdquo; buttons beside each subject open the complete original document. Some courses were transcribed from the Ministry document, so teacher prompts, sample problems and special notation may appear only in the PDF.
+  </footer>
+</div>
+
+<script>
+/* Static data layer: serves the curriculum database from the JSON files in /data. */
+(function(){
+  function getJSON(p){ return fetch("data/" + p).then(function(r){ if (!r.ok) throw new Error(p + " " + r.status); return r.json(); }); }
+  var bundle = null;
+  function loadBundle(){ return bundle || (bundle = getJSON("content.json")); }
+  function mk(list){ return { docs: list.map(function(x){ return { id: x.id, data: function(){ return x.data; } }; }) }; }
+  var db = {
+    collection: function(path){ return { get: function(){
+      if (path === "subjects" || path === "courses") return getJSON(path + ".json").then(mk);
+      if (path === "course_content") return loadBundle().then(function(b){ return mk(Object.keys(b.content).map(function(id){ return { id: id, data: b.content[id] }; })); });
+      var m = /^course_content\/([^\/]+)\/chunks$/.exec(path);
+      if (m) return loadBundle().then(function(b){ return mk((b.chunks[m[1]] || []).map(function(c, i){ return { id: String(i), data: c }; })); });
+      return Promise.resolve({ docs: [] });
+    } }; },
+    doc: function(path){ return { get: function(){
+      var m = /^course_content\/([^\/]+)$/.exec(path);
+      if (!m) return Promise.resolve({ exists: false, data: function(){ return null; } });
+      return loadBundle().then(function(b){ var c = b.content[m[1]]; return { exists: !!c, data: function(){ return c; } }; });
+    } }; }
+  };
+  window.claude = { use: function(){ return Promise.resolve(db); } };
+  setTimeout(function(){ loadBundle().catch(function(){}); }, 1200);
+})();
+</script>
+<script>
+(function(){
+"use strict";
+
+var GRADE_ORDER = ["9","10","11","12","ungraded"];
+var GRADE_LABEL = {"9":"Grade 9","10":"Grade 10","11":"Grade 11","12":"Grade 12","ungraded":"Multi-Grade"};
+
+var TYPE_WORDS = {
+  D:"academic", P:"applied", O:"open", U:"university", C:"college",
+  M:"university college", E:"workplace", W:"destreamed open mixed",
+  L:"locally developed"
+};
+
+var LEVEL_ORDER = ["D","P","O","U","C","M","E","W"];
+var LEVEL_LABEL = {
+  D:"Academic", P:"Applied", O:"Open", U:"University", C:"College",
+  M:"University/College", E:"Workplace", W:"De-streamed"
+};
+var LEVEL_SUB = {
+  W:"Grade 9–10, theory-based / mixed-ability"
+};
+
+var state = {
+  subjects: {},        // codename -> subject doc
+  courses: {},         // codename -> course meta doc
+  byGrade: {},          // grade -> { subjectCodename -> [course codenames] }
+  contentCache: {},     // course codename -> sections array
+  expPanels: {},        // course codename -> rendered "Overall & specific expectations" panel element
+  selectExpTab: {},      // course codename -> function that switches that course to the expectations tab
+  ensureCourseBuilt: {}, // course codename -> function that synchronously builds the course body if not built yet
+  deepNodes: null,      // course codename -> { exp: [text of each overall/specific expectation], prompts: [text of each teacher prompt/example box] }
+  deepIndex: null,      // course codename -> lowercase plain text (only when deep search loaded)
+  deepLoading: false,
+  wasActive: false,
+  query: "",
+  parsed: { grades: [], words: [] },
+  filters: { grade: new Set(), subject: new Set(), level: new Set() },
+  counts: { grade: {}, subject: {}, level: {} },
+  db: null
+};
+
+function levelOf(code){ return code ? code.trim().slice(-1).toUpperCase() : ""; }
+
+function anyFilterActive(){
+  return !!state.query || !!state.filters.grade.size || !!state.filters.subject.size || !!state.filters.level.size;
+}
+
+function h(tag, attrs, children){
+  var el = document.createElement(tag);
+  if (attrs) for (var k in attrs){
+    if (k === "class") el.className = attrs[k];
+    else if (k === "html") el.innerHTML = attrs[k];
+    else if (k === "text") el.textContent = attrs[k];
+    else if (k.indexOf("on") === 0 && typeof attrs[k] === "function") el[k] = attrs[k];
+    else el.setAttribute(k, attrs[k]);
+  }
+  if (children) children.forEach(function(c){ if (c) el.appendChild(c); });
+  return el;
+}
+function stripTags(s){ return (s||"").replace(/<[^>]*>/g," ").replace(/\s+/g," ").trim(); }
+function esc(s){ var d=document.createElement("div"); d.textContent = s||""; return d.innerHTML; }
+
+/* ---------------- data loading ---------------- */
+
+function typeWordFor(code){
+  if (!code) return "";
+  var last = code.trim().slice(-1).toUpperCase();
+  return TYPE_WORDS[last] || "";
+}
+
+function searchBlob(course, subjectTitle){
+  // Deliberately excludes prerequisites: prerequisite text often names OTHER subjects
+  // ("any university preparation course in English or Social Sciences...") which would
+  // otherwise make a course falsely match searches for that other subject.
+  return [course.code, course.name, subjectTitle, stripTags(course.description), typeWordFor(course.code)]
+    .join(" ").toLowerCase();
+}
+
+var subjectSignalWords = {}; // word -> true, for words that name a specific subject (e.g. "english", "science")
+
+function buildSubjectSignalWords(){
+  subjectSignalWords = {};
+  Object.keys(state.subjects).forEach(function(sc){
+    significantWords(state.subjects[sc].title || "").forEach(function(w){ subjectSignalWords[w] = true; });
+  });
+}
+
+function buildIndexes(){
+  buildSubjectSignalWords();
+  GRADE_ORDER.forEach(function(g){ state.byGrade[g] = {}; state.counts.grade[g] = 0; });
+  LEVEL_ORDER.forEach(function(l){ state.counts.level[l] = 0; });
+  state.counts.subject = {};
+  Object.keys(state.courses).forEach(function(cn){
+    var c = state.courses[cn];
+    var g = state.byGrade[c.gradeBucket] || state.byGrade.ungraded;
+    if (!g[c.subject]) g[c.subject] = [];
+    g[c.subject].push(cn);
+    var subj = state.subjects[c.subject];
+    c._subjectTitle = ((subj && subj.title) || "").toLowerCase();
+    c._blob = searchBlob(c, c._subjectTitle);
+    c._level = levelOf(c.code);
+
+    state.counts.grade[c.gradeBucket] = (state.counts.grade[c.gradeBucket] || 0) + 1;
+    state.counts.subject[c.subject] = (state.counts.subject[c.subject] || 0) + 1;
+    if (c._level && state.counts.level.hasOwnProperty(c._level)) state.counts.level[c._level]++;
+  });
+  GRADE_ORDER.forEach(function(g){
+    Object.keys(state.byGrade[g]).forEach(function(subj){
+      state.byGrade[g][subj].sort(function(a,b){
+        return state.courses[a].code.localeCompare(state.courses[b].code);
+      });
+    });
+  });
+}
+
+function reassembleChunks(chunkDatas){
+  var items = [];
+  chunkDatas.forEach(function(cd){ (cd.sections||[]).forEach(function(it){ items.push(it); }); });
+  var topMap = {};
+  items.forEach(function(it){
+    if (it.__parent){
+      var oi = it.__parent._oi;
+      if (!topMap[oi]){
+        var pm = {}; for (var k in it.__parent) if (k !== "_oi") pm[k] = it.__parent[k];
+        pm.children = [];
+        topMap[oi] = pm;
+      }
+      topMap[oi].children.push({ _ci: it._ci, node: it.child });
+    } else {
+      var node = {}; for (var k2 in it) if (k2 !== "_oi") node[k2] = it[k2];
+      topMap[it._oi] = node;
+    }
+  });
+  var ordered = Object.keys(topMap).map(Number).sort(function(a,b){return a-b;});
+  return ordered.map(function(oi){
+    var n = topMap[oi];
+    if (n.children && n.children.length && n.children[0] && typeof n.children[0]._ci === "number"){
+      n.children.sort(function(a,b){ return a._ci - b._ci; });
+      n.children = n.children.map(function(x){ return x.node; });
+    }
+    return n;
+  });
+}
+
+function ensureContent(cn){
+  if (state.contentCache[cn]) return Promise.resolve(state.contentCache[cn]);
+  var meta = state.courses[cn];
+  if (!meta.digital) return Promise.resolve(null);
+  if (meta.oversized){
+    return state.db.collection("course_content/" + cn + "/chunks").get().then(function(snap){
+      var sections = reassembleChunks(snap.docs.map(function(d){ return d.data(); }));
+      state.contentCache[cn] = sections;
+      return sections;
+    });
+  }
+  return state.db.doc("course_content/" + cn).get().then(function(doc){
+    var sections = doc.exists ? (doc.data().sections || []) : [];
+    state.contentCache[cn] = sections;
+    return sections;
+  });
+}
+
+/* ---------------- rendering: expectations tree ---------------- */
+
+function isExpectationsNode(node){
+  return !!(node.children && node.children.length && node.children[0].t === "l3___strand");
+}
+
+function renderElaboration(node){
+  var label = (node.label || "Example").split("|")[0].trim();
+  var body = h("div", { class: "elab-body", hidden: "" }, [
+    h("span", { class: "elab-label", text: label }),
+    h("div", { class: "fm-html", html: node.html || "" })
+  ]);
+  var btn = h("button", { class: "elab-toggle", type: "button", text: "+ " + label, onclick: function(){
+    var open = !body.hidden;
+    body.removeAttribute("data-auto"); // the reader has taken over; search no longer manages this one
+    body.hidden = open;
+    btn.textContent = (open ? "+ " : "− ") + label;
+  }});
+  return h("div", null, [btn, body]);
+}
+
+// Own searchable text of a single node (its own title/describer/note/label/html),
+// deliberately NOT recursing into children — used to test whether a search term lives
+// in THIS node specifically, as opposed to somewhere else in its subtree.
+function ownNodeText(node){
+  var out = [];
+  if (node.title) out.push(node.title);
+  if (node.describer) out.push(node.describer);
+  if (node.note) out.push(node.note);
+  if (node.label) out.push(node.label);
+  if (node.html) out.push(stripTags(node.html));
+  return out.join(" ").toLowerCase();
+}
+
+function renderSE(node){
+  var elabs = (node.children || []).filter(function(c){ return c.t === "elaborations"; });
+  var blob = ownNodeText(node) + " " + elabs.map(ownNodeText).join(" ");
+  return h("li", { class: "se", "data-blob": blob }, [
+    node.idx ? h("span", { class: "se-idx", text: node.idx }) : null,
+    h("div", { class: "se-main" }, [
+      h("div", { class: "fm-html", html: node.html || "" }),
+      elabs.length ? h("div", { class: "elabs" }, elabs.map(renderElaboration)) : null
+    ])
+  ]);
+}
+
+function renderOE(node, strandLead){
+  var ses = (node.children || []).filter(function(c){ return c.t === "l5___specific_expectation"; });
+  var lead = node.describer && node.describer !== strandLead ? node.describer : null;
+  return h("div", { class: "oe", "data-blob": ownNodeText(node) }, [
+    h("div", { class: "oe-head" }, [
+      h("span", { class: "oe-idx", text: node.idx || "" }),
+      h("div", { class: "oe-text", html: node.html || esc(node.title || "") })
+    ]),
+    lead ? h("div", { class: "oe-lead", text: lead }) : null,
+    ses.length ? h("ul", { class: "selist" }, ses.map(renderSE)) : null
+  ]);
+}
+
+function renderStrand(node){
+  var oes = (node.children || []).filter(function(c){ return c.t === "l4___overall_expectation"; });
+  var det = h("details", { class: "strand", "data-blob": ownNodeText(node) });
+  det.appendChild(h("summary", null, [
+    svgChevron(),
+    h("span", { class: "strand-idx", text: node.idx || "" }),
+    h("span", { text: node.title || "Strand" })
+  ]));
+  var body = h("div", { class: "strand-body" }, [
+    node.describer ? h("div", { class: "strand-lead", text: node.describer }) : null
+  ].concat(oes.map(function(o){ return renderOE(o, node.describer); })));
+  det.appendChild(body);
+  return det;
+}
+
+/* ---------------- expectation-level search filtering ----------------
+   When "Also search expectation text" is on and there's a query, narrow each
+   opened course's expectations tree down to just the strand/OE/specific-expectation
+   nodes that actually contain the search term(s), instead of showing everything, and
+   highlight the term itself so it's obvious at a glance where it appears.
+   Course info (front matter) and the grade/subject/course accordion are untouched. */
+function stripHighlights(root){
+  root.querySelectorAll("mark.sehit").forEach(function(mark){
+    mark.replaceWith(document.createTextNode(mark.textContent));
+  });
+  root.normalize();
+}
+
+function highlightWordsIn(root, words){
+  if (!words || !words.length) return;
+  var re = new RegExp("(" + words.map(function(w){ return w.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&"); }).join("|") + ")", "ig");
+  var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+  var textNodes = [];
+  var n;
+  while ((n = walker.nextNode())) textNodes.push(n);
+  textNodes.forEach(function(node){
+    re.lastIndex = 0;
+    var text = node.nodeValue;
+    if (!re.test(text)) return;
+    re.lastIndex = 0;
+    var frag = document.createDocumentFragment();
+    var lastIndex = 0, m;
+    while ((m = re.exec(text))){
+      if (m.index > lastIndex) frag.appendChild(document.createTextNode(text.slice(lastIndex, m.index)));
+      var mark = document.createElement("mark");
+      mark.className = "sehit";
+      mark.textContent = m[0];
+      frag.appendChild(mark);
+      lastIndex = re.lastIndex;
+      if (m.index === re.lastIndex) re.lastIndex++; // guard against zero-length matches
+    }
+    if (lastIndex < text.length) frag.appendChild(document.createTextNode(text.slice(lastIndex)));
+    node.parentNode.replaceChild(frag, node);
+  });
+}
+
+// Teacher Prompts / examples are collapsed by default, so a search term that only appears
+// inside one would be invisible. Open any that contain a highlighted match (and close them
+// again once the search no longer needs them, unless the reader opened/closed them by hand).
+function syncElaborations(panelExp, searching){
+  panelExp.querySelectorAll(".elab-body").forEach(function(body){
+    var btn = body.previousElementSibling;
+    var lab = body.querySelector(".elab-label");
+    var label = lab ? lab.textContent : "Example";
+    var hasHit = searching && !!body.querySelector("mark.sehit");
+    if (hasHit && body.hidden){
+      body.hidden = false; body.setAttribute("data-auto", "1");
+      if (btn) btn.textContent = "− " + label;
+    } else if (!hasHit && body.getAttribute("data-auto") === "1"){
+      body.hidden = true; body.removeAttribute("data-auto");
+      if (btn) btn.textContent = "+ " + label;
+    }
+  });
+}
+
+function filterExpectationsInCourse(panelExp){
+  var words = state.parsed.words;
+  stripHighlights(panelExp);
+  var anyVisible = false;
+  panelExp.querySelectorAll(".strand").forEach(function(strandEl){
+    var strandBlob = strandEl.getAttribute("data-blob") || "";
+    var strandOwnMatch = words.every(function(w){ return strandBlob.indexOf(w) !== -1; });
+    var strandHasVisible = false;
+    strandEl.querySelectorAll(".oe").forEach(function(oeEl){
+      var oeBlob = oeEl.getAttribute("data-blob") || "";
+      var oeOwnMatch = strandOwnMatch || words.every(function(w){ return oeBlob.indexOf(w) !== -1; });
+      var seHasVisible = false;
+      oeEl.querySelectorAll(".se").forEach(function(seEl){
+        var seBlob = seEl.getAttribute("data-blob") || "";
+        // If the strand or this overall expectation itself matched, show every specific
+        // expectation underneath it rather than filtering them individually too.
+        var m = oeOwnMatch || words.every(function(w){ return seBlob.indexOf(w) !== -1; });
+        seEl.hidden = !m;
+        if (m) seHasVisible = true;
+      });
+      var oeVisible = oeOwnMatch || seHasVisible;
+      oeEl.hidden = !oeVisible;
+      if (oeVisible) strandHasVisible = true;
+    });
+    strandEl.hidden = !strandHasVisible;
+    if (strandHasVisible){ anyVisible = true; strandEl.open = true; }
+  });
+  highlightWordsIn(panelExp, words);
+  syncElaborations(panelExp, true);
+  return anyVisible;
+}
+
+function unhideExpectations(panelExp){
+  panelExp.querySelectorAll(".strand, .oe, .se").forEach(function(el){ el.hidden = false; });
+}
+
+function applyExpFilterFor(cn){
+  var panelExp = state.expPanels[cn];
+  if (!panelExp) return;
+  if (state.deepIndex && state.parsed.words && state.parsed.words.length){
+    var any = filterExpectationsInCourse(panelExp);
+    // Term wasn't concentrated in any single expectation — fall back to showing all of
+    // them, but keep the highlights (set above) so every occurrence is still easy to spot.
+    if (!any) unhideExpectations(panelExp);
+  } else {
+    stripHighlights(panelExp);
+    syncElaborations(panelExp, false);
+    unhideExpectations(panelExp);
+  }
+}
+
+function refreshExpFilters(){
+  Object.keys(state.expPanels).forEach(applyExpFilterFor);
+}
+
+function svgChevron(){
+  var s = "http://www.w3.org/2000/svg";
+  var svg = document.createElementNS(s, "svg");
+  svg.setAttribute("class", "chev"); svg.setAttribute("viewBox", "0 0 16 16"); svg.setAttribute("fill", "none");
+  var p = document.createElementNS(s, "path");
+  p.setAttribute("d", "M6 3l5 5-5 5"); p.setAttribute("stroke", "currentColor"); p.setAttribute("stroke-width", "2");
+  p.setAttribute("stroke-linecap", "round"); p.setAttribute("stroke-linejoin", "round");
+  svg.appendChild(p);
+  return svg;
+}
+
+/* ---------------- rendering: frontmatter nodes ---------------- */
+
+function isMeaningfulNode(node){
+  if ((node.html || "").trim()) return true;
+  return (node.children || []).some(isMeaningfulNode);
+}
+
+function renderFrontmatterNode(node, nested){
+  if (!isMeaningfulNode(node)) return null;
+  var kids = (node.children || []).filter(isMeaningfulNode);
+  var hasHtml = (node.html || "").trim().length > 0;
+  if (!nested && (hasHtml || kids.length)){
+    var det = h("details", { class: "fm-toggle" });
+    det.appendChild(h("summary", null, [svgChevron(), h("span", { text: node.title || "Section" })]));
+    var body = h("div", { class: "tabpanel", style: "padding-top:8px;" });
+    if (node.describer) body.appendChild(h("div", { class: "strand-lead", text: node.describer }));
+    if (hasHtml) body.appendChild(h("div", { class: "fm-html", html: node.html }));
+    if (kids.length){
+      var wrap = h("div", { class: "fm-children" });
+      kids.forEach(function(k){ var r = renderFrontmatterNode(k, true); if (r) wrap.appendChild(r); });
+      body.appendChild(wrap);
+    }
+    det.appendChild(body);
+    return det;
+  }
+  var container = h("div", { class: "fm-node", "data-nested": "1" });
+  if (node.title) container.appendChild(h("div", { class: "fm-head", text: node.title }));
+  if (node.describer) container.appendChild(h("div", { class: "strand-lead", text: node.describer }));
+  if (hasHtml) container.appendChild(h("div", { class: "fm-html", html: node.html }));
+  if (kids.length){
+    var wrap2 = h("div", { class: "fm-children" });
+    kids.forEach(function(k){ var r = renderFrontmatterNode(k, true); if (r) wrap2.appendChild(r); });
+    container.appendChild(wrap2);
+  }
+  return container;
+}
+
+/* ---------------- PDF helpers ---------------- */
+
+function pdfGradeSpan(title){
+  var nums = (title.match(/\b(9|10|11|12)\b/g) || []).map(Number);
+  if (!nums.length) return null;
+  return { min: Math.min.apply(null, nums), max: Math.max.apply(null, nums) };
+}
+
+var WORD_STOP = {the:1,and:1,for:1,course:1,courses:1,ontario:1,curriculum:1,secondary:1,school:1,open:1,
+  since:1,with:1,from:1,this:1,study:1,studies:1,specific:1,expectations:1,overall:1,revised:1,
+  grade:1,grades:1,program:1,education:1,students:1,into:1,their:1};
+
+function significantWords(s){
+  return (s||"").toLowerCase().replace(/[^a-z0-9]+/g," ").split(/\s+/)
+    .filter(function(w){ return w.length >= 4 && !WORD_STOP[w]; });
+}
+function wordSet(s){
+  var o = {}; significantWords(s).forEach(function(w){ o[w] = 1; }); return o;
+}
+function sharesWord(set, s){
+  var words = significantWords(s);
+  for (var i = 0; i < words.length; i++){ if (set[words[i]]) return true; }
+  return false;
+}
+
+var PDFMAP = {"mcf3m___pdf":[{"code":"MCF3M","file":"docs/MCF3M.pdf"}],"lbaco___ldyco__copy_":[{"code":"LBADU-LDYDU","file":"docs/LBADU-LDYDU.pdf"}],"btx4c__copy_":[{"code":"BTX4E","file":"docs/BTX4E.pdf"}],"arts___sec___avi3o":[{"code":"AVI3O","file":"docs/AVI3O.pdf"}],"cgc1d__copy__e673b07":[{"code":"CHC2D","file":"docs/CHC2D.pdf"}],"hhs4u__copy_":[{"code":"HHS4C","file":"docs/HHS4C.pdf"}],"nbe3e___nbf3e":[{"code":"NBE3E","file":"docs/NBE3E.pdf"}],"hfn1o":[{"code":"HFN1O","file":"docs/HFN1O.pdf"}],"fif1d__copy__66a3c72":[{"code":"FIF1D","file":"docs/FIF1D.pdf"}],"fsf3o__copy__12906f7":[{"code":"FSF3O","file":"docs/FSF3O.pdf"}],"eldeo__pdf___copy_":[{"code":"ELDEO","file":"docs/ELDEO.pdf"}],"gls4o__copy_":[{"code":"GLE3O","file":"docs/GLE3O.pdf"}],"chm4e__copy__91e5c85":[{"code":"CHM4E","file":"docs/CHM4E.pdf"}],"snc2d__copy__d66f002":[{"code":"SNC2D","file":"docs/SNC2D.pdf"}],"hnb4m__copy_":[{"code":"HHD3O","file":"docs/HHD3O.pdf"}],"tmj3c__copy_":[{"code":"TMJ3E","file":"docs/TMJ3E.pdf"}],"ttj2o__copy_":[{"code":"TGJ3M","file":"docs/TGJ3M.pdf"}],"btt2o__copy_":[{"code":"BAF3M","file":"docs/BAF3M.pdf"}],"hfc3m__copy_":[{"code":"HFC3E","file":"docs/HFC3E.pdf"}],"chc2p__copy_":[{"code":"CHV2O","file":"docs/CHV2O.pdf"}],"idc4u_idp4u__copy__7bf0c7b":[{"code":"IDC4U","file":"docs/IDC4U.pdf"},{"code":"IDP4U","file":"docs/IDP4U.pdf"}],"cia4u__copy__2fe6a0d":[{"code":"CIA4U","file":"docs/CIA4U.pdf"}],"elddo__pdf___copy_":[{"code":"ELDDO","file":"docs/ELDDO.pdf"}],"hse3e__copy_":[{"code":"HSE4M","file":"docs/HSE4M.pdf"}],"arts___sec___avi4m":[{"code":"AVI4M","file":"docs/AVI4M.pdf"}],"nbv3c":[{"code":"NBV3C","file":"docs/NBV3C.pdf"}],"fif2p__copy__ec53bd9":[{"code":"FIF2P","file":"docs/FIF2P.pdf"}],"gle3o__copy_":[{"code":"GLE4O","file":"docs/GLE4O.pdf"}],"tpj3c__copy_":[{"code":"TPJ4M","file":"docs/TPJ4M.pdf"}],"tdj3m__copy___copy___copy_":[{"code":"TDJ4O","file":"docs/TDJ4O.pdf"}],"arts___sec___asm4e":[{"code":"ASM4E","file":"docs/ASM4E.pdf"}],"arts___sec___asm4m":[{"code":"ASM4M","file":"docs/ASM4M.pdf"}],"esleo__pdf___copy_":[{"code":"ESLEO","file":"docs/ESLEO.pdf"}],"gwl3o___pdf__copy_":[{"code":"GWL3O","file":"docs/GWL3O.pdf"}],"fsf2p__copy__6369cf2":[{"code":"FSF2P","file":"docs/FSF2P.pdf"}],"chi4u__copy__4c58947":[{"code":"CHI4U","file":"docs/CHI4U.pdf"}],"arts___sec___asm2o":[{"code":"ASM2O","file":"docs/ASM2O.pdf"}],"chy4c__copy__fd0b6c2":[{"code":"CHY4C","file":"docs/CHY4C.pdf"}],"hhd3o__copy_":[{"code":"HHS4U","file":"docs/HHS4U.pdf"}],"tcj3c__copy_":[{"code":"TCJ3E","file":"docs/TCJ3E.pdf"}],"chc2d__copy_":[{"code":"CHC2P","file":"docs/CHC2P.pdf"}],"fsf4o__copy_":[{"code":"FSF4O","file":"docs/FSF4O.pdf"}],"chw3m__copy__cc81ca7":[{"code":"CHW3M","file":"docs/CHW3M.pdf"}],"arts___sec___atc4m":[{"code":"ATC4M","file":"docs/ATC4M.pdf"}],"arts___sec___amu4e":[{"code":"AMU4E","file":"docs/AMU4E.pdf"}],"lnado___lnodo__pdf___copy_":[{"code":"LNADO-LNODO","file":"docs/LNADO-LNODO.pdf"}],"che3o__copy__6cd1cfd":[{"code":"CHE3O","file":"docs/CHE3O.pdf"}],"ttj3c__copy___copy___copy_":[{"code":"TTJ4E","file":"docs/TTJ4E.pdf"}],"cgt3o__copy__be3ee60":[{"code":"CGT3O","file":"docs/CGT3O.pdf"}],"arts___sec___ada1o":[{"code":"ADA1O","file":"docs/ADA1O.pdf"}],"cgd3m__copy__1523103":[{"code":"CGD3M","file":"docs/CGD3M.pdf"}],"snc2p__copy__a1195a9":[{"code":"SNC2P","file":"docs/SNC2P.pdf"}],"arts___sec___alc1o___alc2o":[{"code":"ALC1O","file":"docs/ALC1O.pdf"}],"baf3m__copy_":[{"code":"BAI3E","file":"docs/BAI3E.pdf"}],"lbabo___ldybo__copy_":[{"code":"LBACU-LDYCU","file":"docs/LBACU-LDYCU.pdf"}],"ics4u__copy_":[{"code":"ICS4C","file":"docs/ICS4C.pdf"}],"tdj3m__copy___copy_":[{"code":"TDJ4M","file":"docs/TDJ4M.pdf"}],"bbb4e__copy_":[{"code":"BMI3C","file":"docs/BMI3C.pdf"}],"tcj4e__copy_":[{"code":"TWJ4E","file":"docs/TWJ4E.pdf"}],"hfn2o__copy__a0fb09e":[{"code":"HFC3M","file":"docs/HFC3M.pdf"}],"arts___sec___amu1o":[{"code":"AMU1O","file":"docs/AMU1O.pdf"}],"arts___sec___ada3m":[{"code":"ADA3M","file":"docs/ADA3M.pdf"}],"nbe3c___nbf3c":[{"code":"NBE3C","file":"docs/NBE3C.pdf"}],"boh4m__copy_":[{"code":"BOG4E","file":"docs/BOG4E.pdf"}],"arts___sec___asm3m":[{"code":"ASM3M","file":"docs/ASM3M.pdf"}],"fif2d__copy__62660d7":[{"code":"FIF2D","file":"docs/FIF2D.pdf"}],"tpj4e__copy_":[{"code":"TFJ3C","file":"docs/TFJ3C.pdf"}],"cgw4c__copy__4e86902":[{"code":"CGW4C","file":"docs/CGW4C.pdf"}],"ems3o___ffm3o":[{"code":"EMS3O","file":"docs/EMS3O.pdf"}],"gpp3o___pdf__copy_":[{"code":"GPP3O","file":"docs/GPP3O.pdf"}],"fef1d__copy__161f20b":[{"code":"FEF1D","file":"docs/FEF1D.pdf"}],"eldco__pdf___copy_":[{"code":"ELDCO","file":"docs/ELDCO.pdf"}],"fef2d__copy__67134f5":[{"code":"FEF2D","file":"docs/FEF2D.pdf"}],"hfn1o__copy_":[{"code":"HFN2O","file":"docs/HFN2O.pdf"}],"ics3u__copy_":[{"code":"ICS3C","file":"docs/ICS3C.pdf"}],"tfj3c__copy_":[{"code":"TFJ3E","file":"docs/TFJ3E.pdf"}],"arts___sec___atc4e":[{"code":"ATC4E","file":"docs/ATC4E.pdf"}],"gls1o__copy_":[{"code":"GLE1O","file":"docs/GLE1O.pdf"}],"fsf4u__copy__331ac34":[{"code":"FSF4U","file":"docs/FSF4U.pdf"}],"fsf3u__copy__e181a8d":[{"code":"FSF3U","file":"docs/FSF3U.pdf"}],"hsp3c__copy_":[{"code":"HSB4U","file":"docs/HSB4U.pdf"}],"lbacu___ldycu__copy_":[{"code":"LBACO-LDYCO","file":"docs/LBACO-LDYCO.pdf"}],"hfn2o__copy_":[{"code":"HSG3M","file":"docs/HSG3M.pdf"}],"ewc4u___fae4o":[{"code":"EWC4U","file":"docs/EWC4U.pdf"}],"psk4u__copy_":[{"code":"PLF4M","file":"docs/PLF4M.pdf"}],"lvgbd___lvlbd__copy_":[{"code":"LVGCU","file":"docs/LVGCU.pdf"},{"code":"LVLCU","file":"docs/LVLCU.pdf"}],"arts___sec___aea3o___aea4o":[{"code":"AEA3O","file":"docs/AEA3O.pdf"}],"hhg4m__copy_":[{"code":"HIP4O","file":"docs/HIP4O.pdf"}],"tej3m__copy_":[{"code":"TEJ3E","file":"docs/TEJ3E.pdf"}],"ets4u___flo4u":[{"code":"ETS4U","file":"docs/ETS4U.pdf"}],"tmj4e__copy__dc5e03d":[{"code":"TDJ3M","file":"docs/TDJ3M.pdf"}],"eng3c___fra3c":[{"code":"ENG3C","file":"docs/ENG3C.pdf"}],"ndg4m":[{"code":"NDG4M","file":"docs/NDG4M.pdf"}],"bdi3c__copy_":[{"code":"BDP3O","file":"docs/BDP3O.pdf"}],"tcj4c__copy_":[{"code":"TCJ4E","file":"docs/TCJ4E.pdf"}],"mct4c___pdf":[{"code":"MCT4C","file":"docs/MCT4C.pdf"}],"atc3o__copy_":[{"code":"ATC3O","file":"docs/ATC3O.pdf"}],"thj4e__copy_":[{"code":"TXJ3E","file":"docs/TXJ3E.pdf"}],"lnabo___lnobo__pdf___copy_":[{"code":"LNABO-LNOBO","file":"docs/LNABO-LNOBO.pdf"}],"arts___sec___alc2o":[{"code":"ALC2O","file":"docs/ALC2O.pdf"}],"idc4o_idp4o__copy_":[{"code":"IDC4O","file":"docs/IDC4O.pdf"},{"code":"IDP4O","file":"docs/IDP4O.pdf"}],"mel3e___pdf":[{"code":"MEL3E","file":"docs/MEL3E.pdf"}],"arts___sec___amu3m":[{"code":"AMU3M","file":"docs/AMU3M.pdf"}],"lbadu___ldydu__copy_":[{"code":"LBADO-LDYDO","file":"docs/LBADO-LDYDO.pdf"}],"hpd4c__copy_":[{"code":"HSP3U","file":"docs/HSP3U.pdf"}],"eng4u___fra4u":[{"code":"ENG4U","file":"docs/ENG4U.pdf"}],"eng4e___fra4e":[{"code":"ENG4E","file":"docs/ENG4E.pdf"}],"etc3m___flc4m":[{"code":"ETC3M","file":"docs/ETC3M.pdf"}],"thj3e__copy_":[{"code":"THJ4M","file":"docs/THJ4M.pdf"}],"eng2p___fra2p":[{"code":"ENG2P","file":"docs/ENG2P.pdf"}],"gld2o_e7f7a5b":[{"code":"GLD2O","file":"docs/GLD2O.pdf"}],"arts___sec___atc1o":[{"code":"ATC1O","file":"docs/ATC1O.pdf"}],"arts___sec___atc3m":[{"code":"ATC3M","file":"docs/ATC3M.pdf"}],"tpj4c__copy_":[{"code":"TOJ4C","file":"docs/TOJ4C.pdf"}],"hpw3c__copy_":[{"code":"HPC3O","file":"docs/HPC3O.pdf"}],"txj3e__copy__d0ffd2a":[{"code":"TPJ3M","file":"docs/TPJ3M.pdf"}],"lnaco___lnoco__copy__0d39977":[{"code":"LNACO-LNOCO","file":"docs/LNACO-LNOCO.pdf"}],"lvgbd___lvlbd":[{"code":"LVGBD","file":"docs/LVGBD.pdf"},{"code":"LVLBD","file":"docs/LVLBD.pdf"}],"eng3e___fra3e":[{"code":"ENG3E","file":"docs/ENG3E.pdf"}],"cln4u__copy__fa17b92":[{"code":"CLN4U","file":"docs/CLN4U.pdf"}],"tgj4o__copy_":[{"code":"TEJ3M","file":"docs/TEJ3M.pdf"}],"map4c___pdf":[{"code":"MAP4C","file":"docs/MAP4C.pdf"}],"hhs4c__copy_":[{"code":"HHG4M","file":"docs/HHG4M.pdf"}],"bta3o__copy_":[{"code":"BTX4C","file":"docs/BTX4C.pdf"}],"tfj4c__copy_":[{"code":"TFJ4E","file":"docs/TFJ4E.pdf"}],"ppl1o":[{"code":"PPL1O","file":"docs/PPL1O.pdf"}],"arts___sec___avi1o":[{"code":"AVI1O","file":"docs/AVI1O.pdf"}],"sch3u__copy_":[{"code":"SCH3U","file":"docs/SCH3U.pdf"}],"arts___sec___asm3m__copy_":[{"code":"ASM3O","file":"docs/ASM3O.pdf"}],"fsf2o__copy__8840a02":[{"code":"FSF2O","file":"docs/FSF2O.pdf"}],"ppl2o__copy_":[{"code":"PPL3O","file":"docs/PPL3O.pdf"}],"fef3u__copy__3fafd62":[{"code":"FEF3U","file":"docs/FEF3U.pdf"}],"mfm2p___pdf__copy_":[{"code":"MCR3U","file":"docs/MCR3U.pdf"}],"tdj4o__copy_":[{"code":"TTJ3C","file":"docs/TTJ3C.pdf"}],"cic4e__copy_":[{"code":"CIC4E","file":"docs/CIC4E.pdf"}],"clu3e__copy__3c5d512":[{"code":"CLU3E","file":"docs/CLU3E.pdf"}],"cht3o__copy__5f8ef2e":[{"code":"CHT3O","file":"docs/CHT3O.pdf"}],"twj4e__copy_":[{"code":"THJ3M","file":"docs/THJ3M.pdf"}],"txj3e__copy___copy_":[{"code":"TPJ3C","file":"docs/TPJ3C.pdf"}],"lvgcu___lvlcu__copy_":[{"code":"LVGDU","file":"docs/LVGDU.pdf"},{"code":"LVLDU","file":"docs/LVLDU.pdf"}],"tej4e__copy_":[{"code":"TCJ3C","file":"docs/TCJ3C.pdf"}],"arts___sec___avi4e":[{"code":"AVI4E","file":"docs/AVI4E.pdf"}],"cpc3o__copy__bcb273f":[{"code":"CPC3O","file":"docs/CPC3O.pdf"}],"idc3o___idp3o__pdf___copy_":[{"code":"IDC3O","file":"docs/IDC3O.pdf"},{"code":"IDP3O","file":"docs/IDP3O.pdf"}],"btx4e__copy_":[{"code":"BBB4M","file":"docs/BBB4M.pdf"}],"hnb4m__copy__bb24bcb":[{"code":"HZB3M","file":"docs/HZB3M.pdf"}],"ics2o__copy_":[{"code":"ICS3U","file":"docs/ICS3U.pdf"}],"arts___sec___amu4m":[{"code":"AMU4M","file":"docs/AMU4M.pdf"}],"twj3e__copy_":[{"code":"TCJ4C","file":"docs/TCJ4C.pdf"}],"nac1o":[{"code":"NAC1O","file":"docs/NAC1O.pdf"}],"cgu4m__copy__77ad09a":[{"code":"CGU4M","file":"docs/CGU4M.pdf"}],"hnl2o__copy_":[{"code":"HNC3C","file":"docs/HNC3C.pdf"}],"clu3m__copy__bd41401":[{"code":"CLU3M","file":"docs/CLU3M.pdf"}],"nda3m":[{"code":"NDA3M","file":"docs/NDA3M.pdf"}],"gls4o___pdf__copy_":[{"code":"GLS4O","file":"docs/GLS4O.pdf"}],"ses4u__copy_":[{"code":"SES4U","file":"docs/SES4U.pdf"}],"nbe3u___nbf3u":[{"code":"NBE3U","file":"docs/NBE3U.pdf"}],"fef4u__copy__259a84a":[{"code":"FEF4U","file":"docs/FEF4U.pdf"}],"tpj4m__copy_":[{"code":"TPJ4C","file":"docs/TPJ4C.pdf"}],"arts___sec___aea4o":[{"code":"AEA4O","file":"docs/AEA4O.pdf"}],"hls3o__copy_":[{"code":"HNB4M","file":"docs/HNB4M.pdf"}],"tgj3m__copy_":[{"code":"TGJ4O","file":"docs/TGJ4O.pdf"}],"arts___sec___ada4m":[{"code":"ADA4M","file":"docs/ADA4M.pdf"}],"mpm2d___pdf__copy_":[{"code":"MFM2P","file":"docs/MFM2P.pdf"}],"thj4m__copy_":[{"code":"THJ4E","file":"docs/THJ4E.pdf"}],"tdj3m__copy_":[{"code":"TDJ3O","file":"docs/TDJ3O.pdf"}],"sbi4u__copy_":[{"code":"SBI4U","file":"docs/SBI4U.pdf"}],"arts___sec___ada4e":[{"code":"ADA4E","file":"docs/ADA4E.pdf"}],"arts___sec___amu3o":[{"code":"AMU3O","file":"docs/AMU3O.pdf"}],"mdm4u___pdf":[{"code":"MDM4U","file":"docs/MDM4U.pdf"}],"ttj3c__copy_":[{"code":"TTJ3O","file":"docs/TTJ3O.pdf"}],"coop_linked_course":[{"code":"COOP-LINKED","file":"docs/COOP-LINKED.pdf"}],"eng2d___fra2d":[{"code":"ENG2D","file":"docs/ENG2D.pdf"}],"ttj3c__copy___copy_":[{"code":"TTJ4C","file":"docs/TTJ4C.pdf"}],"fsf1o__copy__7ca08e8":[{"code":"FSF1O","file":"docs/FSF1O.pdf"}],"hnc3c__copy_":[{"code":"HLS3O","file":"docs/HLS3O.pdf"}],"coop_linked_course__copy_":[{"code":"DCO3O","file":"docs/DCO3O.pdf"}],"hsc4m__copy_":[{"code":"HIF1O","file":"docs/HIF1O.pdf"}],"bbb4m__copy_":[{"code":"BBB4E","file":"docs/BBB4E.pdf"}],"sch4u__copy_":[{"code":"SCH4U","file":"docs/SCH4U.pdf"}],"svn3m__copy_":[{"code":"SVN3M","file":"docs/SVN3M.pdf"}],"ppl1o__copy_":[{"code":"PPL2O","file":"docs/PPL2O.pdf"}],"arts___sec___avi3m":[{"code":"AVI3M","file":"docs/AVI3M.pdf"}],"sch4c__copy_":[{"code":"SCH4C","file":"docs/SCH4C.pdf"}],"ban4e__copy_":[{"code":"BDI3C","file":"docs/BDI3C.pdf"}],"mbf3c___pdf":[{"code":"MBF3C","file":"docs/MBF3C.pdf"}],"arts___sec___amu1o__copy_":[{"code":"AMU2O","file":"docs/AMU2O.pdf"}],"arts___sec___ada2o":[{"code":"ADA2O","file":"docs/ADA2O.pdf"}],"fsf1d__copy__e4b4a9b":[{"code":"FSF1D","file":"docs/FSF1D.pdf"}],"tmj4m__copy_":[{"code":"TMJ4C","file":"docs/TMJ4C.pdf"}],"snc4e__copy_":[{"code":"SNC4E","file":"docs/SNC4E.pdf"}],"cpw4u__copy_":[{"code":"CPW4U","file":"docs/CPW4U.pdf"}],"hsp3u__copy_":[{"code":"HSP3C","file":"docs/HSP3C.pdf"}],"cha3u__copy__48239ec":[{"code":"CHA3U","file":"docs/CHA3U.pdf"}],"eng1d___fra1d__copy_":[{"code":"ENG3U","file":"docs/ENG3U.pdf"}],"mhf4u___pdf":[{"code":"MHF4U","file":"docs/MHF4U.pdf"}],"ppz3c__copy_":[{"code":"PSK4U","file":"docs/PSK4U.pdf"}],"nbv3e":[{"code":"NBV3E","file":"docs/NBV3E.pdf"}],"mpm2d___pdf":[{"code":"MPM2D","file":"docs/MPM2D.pdf"}],"eslco__pdf___copy_":[{"code":"ESLCO","file":"docs/ESLCO.pdf"}],"tfj4e__copy_":[{"code":"TMJ3M","file":"docs/TMJ3M.pdf"}],"hse4m__copy_":[{"code":"HSC4M","file":"docs/HSC4M.pdf"}],"cie3m__copy_":[{"code":"CIE3M","file":"docs/CIE3M.pdf"}],"fif4u__copy__cd1e9f7":[{"code":"FIF4U","file":"docs/FIF4U.pdf"}],"chy4u__copy__266a479":[{"code":"CHY4U","file":"docs/CHY4U.pdf"}],"ics3c__copy_":[{"code":"ICS4U","file":"docs/ICS4U.pdf"}],"bai3e__copy__04d9138":[{"code":"BAT4M","file":"docs/BAT4M.pdf"}],"ets4c":[{"code":"ETS4C","file":"docs/ETS4C.pdf"}],"hif2o__copy_":[{"code":"HNL2O","file":"docs/HNL2O.pdf"}],"bai3e__copy_":[{"code":"BAN4E","file":"docs/BAN4E.pdf"}],"ppl4o__copy_":[{"code":"PPZ3C","file":"docs/PPZ3C.pdf"}],"sbi3u__copy_":[{"code":"SBI3U","file":"docs/SBI3U.pdf"}],"eslbo__pdf___copy_":[{"code":"ESLBO","file":"docs/ESLBO.pdf"}],"tej3e__copy_":[{"code":"TEJ4M","file":"docs/TEJ4M.pdf"}],"toj4c__copy_":[{"code":"TPJ4E","file":"docs/TPJ4E.pdf"}],"hzt4u__copy_":[{"code":"HRT3M","file":"docs/HRT3M.pdf"}],"cgr4m__copy__6870947":[{"code":"CGR4M","file":"docs/CGR4M.pdf"}],"lvgdu___lvldu__copy_":[{"code":"LVV4U","file":"docs/LVV4U.pdf"}],"eng4c___fra4c":[{"code":"ENG4C","file":"docs/ENG4C.pdf"}],"bdv4c__copy_":[{"code":"BTA3O","file":"docs/BTA3O.pdf"}],"bmi3c__copy_":[{"code":"BMX3E","file":"docs/BMX3E.pdf"}],"hfc3e__copy_":[{"code":"HFA4U","file":"docs/HFA4U.pdf"}],"sph4u__pdf___copy_":[{"code":"SPH4C","file":"docs/SPH4C.pdf"}],"gle1o__copy_":[{"code":"GLE2O","file":"docs/GLE2O.pdf"}],"hzb3m__copy_":[{"code":"HZT4U","file":"docs/HZT4U.pdf"}],"svn3e__copy_":[{"code":"SVN3E","file":"docs/SVN3E.pdf"}],"eps3o___fcc3o":[{"code":"EPS3O","file":"docs/EPS3O.pdf"}],"ewc4c___flo4u":[{"code":"EWC4C","file":"docs/EWC4C.pdf"}],"hsg3m__copy_":[{"code":"HSE3E","file":"docs/HSE3E.pdf"}],"tgj3o__copy_":[{"code":"TGJ4M","file":"docs/TGJ4M.pdf"}],"cgo4m__copy__07aabce":[{"code":"CGO4M","file":"docs/CGO4M.pdf"}],"fsf2d__copy__b59c192":[{"code":"FSF2D","file":"docs/FSF2D.pdf"}],"mcv4u___pdf":[{"code":"MCV4U","file":"docs/MCV4U.pdf"}],"tcj3e__copy_":[{"code":"TWJ3E","file":"docs/TWJ3E.pdf"}],"fif3u__copy__d756d38":[{"code":"FIF3U","file":"docs/FIF3U.pdf"}],"ebt4o___faf4o":[{"code":"EBT4O","file":"docs/EBT4O.pdf"}],"cgr4e__copy_":[{"code":"CGR4E","file":"docs/CGR4E.pdf"}],"gln4o___pdf__copy_":[{"code":"GLN4O","file":"docs/GLN4O.pdf"}],"gls1o_ae07e35":[{"code":"GLS1O","file":"docs/GLS1O.pdf"}],"lvv4u__copy_":[{"code":"LBABD-LDYBD","file":"docs/LBABD-LDYBD.pdf"}],"eldao__pdf___copy_":[{"code":"ELDAO","file":"docs/ELDAO.pdf"}],"lnaao___lnoao__copy_":[{"code":"LNAAO-LNOAO","file":"docs/LNAAO-LNOAO.pdf"}],"tmj4m__copy___copy_":[{"code":"TMJ4E","file":"docs/TMJ4E.pdf"}],"eslao__pdf___copy_":[{"code":"ESLAO","file":"docs/ESLAO.pdf"}],"tmj3e__copy_":[{"code":"TMJ4M","file":"docs/TMJ4M.pdf"}],"sbi3c__copy_":[{"code":"SBI3C","file":"docs/SBI3C.pdf"}],"arts___sec___avi1o__copy_":[{"code":"AVI2O","file":"docs/AVI2O.pdf"}],"esldo__pdf___copy_":[{"code":"ESLDO","file":"docs/ESLDO.pdf"}],"tfj3e__copy_":[{"code":"TFJ4C","file":"docs/TFJ4C.pdf"}],"lnaeo___lnoeo__pdf___copy_":[{"code":"LNAEO-LNOEO","file":"docs/LNAEO-LNOEO.pdf"}],"arts___sec___ada3o":[{"code":"ADA3O","file":"docs/ADA3O.pdf"}],"bdp3o__copy_":[{"code":"BDV4C","file":"docs/BDV4C.pdf"}],"arts___sec___atc2o":[{"code":"ATC2O","file":"docs/ATC2O.pdf"}],"hpc3o__copy_":[{"code":"HPD4C","file":"docs/HPD4C.pdf"}],"snc4m__copy_":[{"code":"SNC4M","file":"docs/SNC4M.pdf"}],"txj3e__copy_":[{"code":"TXJ4E","file":"docs/TXJ4E.pdf"}],"hip4o__copy_":[{"code":"HPW3C","file":"docs/HPW3C.pdf"}],"tej4m__copy_":[{"code":"TEJ4E","file":"docs/TEJ4E.pdf"}],"hfa4u__copy_":[{"code":"HFA4C","file":"docs/HFA4C.pdf"}],"sph3u__copy_":[{"code":"SPH3U","file":"docs/SPH3U.pdf"}],"bmx3e__copy_":[{"code":"BOH4M","file":"docs/BOH4M.pdf"}],"els2o":[{"code":"ELS2O","file":"docs/ELS2O.pdf"}],"fif4o__copy__c680af5":[{"code":"FIF4O","file":"docs/FIF4O.pdf"}],"sph4u__copy_":[{"code":"SPH4U","file":"docs/SPH4U.pdf"}],"cgg3o__copy__e264039":[{"code":"CGG3O","file":"docs/CGG3O.pdf"}],"tfj4e__copy___copy_":[{"code":"TMJ3C","file":"docs/TMJ3C.pdf"}],"mel4e___pdf":[{"code":"MEL4E","file":"docs/MEL4E.pdf"}],"fif3o__copy__eadbac5":[{"code":"FIF3O","file":"docs/FIF3O.pdf"}],"hfa4c__copy_":[{"code":"HFL4E","file":"docs/HFL4E.pdf"}],"nac2o":[{"code":"NAC2O","file":"docs/NAC2O.pdf"}],"eldbo__pdf___copy_":[{"code":"ELDBO","file":"docs/ELDBO.pdf"}],"cgf3m__copy__24cc76f":[{"code":"CGF3M","file":"docs/CGF3M.pdf"}],"thj3m__copy_":[{"code":"THJ3E","file":"docs/THJ3E.pdf"}],"ppl3o__copy_":[{"code":"PPL4O","file":"docs/PPL4O.pdf"}],"cln4c__copy_":[{"code":"CLN4C","file":"docs/CLN4C.pdf"}],"hrt3m__copy_":[{"code":"HRF3O","file":"docs/HRF3O.pdf"}],"tgj3m__copy__5ca0dec":[{"code":"TGJ3O","file":"docs/TGJ3O.pdf"}],"ndw4m":[{"code":"NDW4M","file":"docs/NDW4M.pdf"}],"lbabd___ldybd__copy_":[{"code":"LBABO-LDYBO","file":"docs/LBABO-LDYBO.pdf"}],"cgw4u__copy__31d1367":[{"code":"CGW4U","file":"docs/CGW4U.pdf"}],"hif2o":[{"code":"HIF2O","file":"docs/HIF2O.pdf"}],"asl___lsq___level_1":[{"code":"LASBO","file":"docs/LASBO.pdf"}],"bbi2o__copy_":[{"code":"BEP2O","file":"docs/BEP2O.pdf"}],"btt2o__copy__1cbb49b":[{"code":"BEM1O","file":"docs/BEM1O.pdf"}],"cgd3m__copy_":[{"code":"CGC1W","file":"docs/CGC1W.pdf"}],"eng1d___fra1d":[{"code":"ENL1W","file":"docs/ENL1W.pdf"}],"glc2o":[{"code":"GLC2O","file":"docs/GLC2O.pdf"}],"ics2o__copy__329399f":[{"code":"ICD2O","file":"docs/ICD2O.pdf"}],"math___grade_9_course":[{"code":"MTH1W","file":"docs/MTH1W.pdf"}],"olc4o___ccl4o":[{"code":"OLC4O","file":"docs/OLC4O.pdf"}],"snc1w":[{"code":"SNC1W","file":"docs/SNC1W.pdf"}],"tas1o__2024_":[{"code":"TAS1O","file":"docs/TAS1O.pdf"}],"tas1o__2024___copy_":[{"code":"TAS2O","file":"docs/TAS2O.pdf"}]};
+var SUBJ_ORIGINALS = {"sec___eng___fra__2007____digital":[{"label":"Grades 9–10","min":9,"max":10,"file":"originals/English_9-10_Original.pdf","pages":124},{"label":"Grades 11–12","min":11,"max":12,"file":"originals/English_11-12_Original.pdf","pages":221},{"label":"ENL1W (2023)","min":9,"max":9,"file":"originals/English_9-10_ENL1W_2023_Original.pdf","pages":73},{"label":"OLC4O (2003)","min":12,"max":12,"file":"originals/English_12_OLC4O_2003_Original.pdf","pages":31}],"secondary___business_studies__copy_":[{"label":"Grades 11–12","min":11,"max":12,"file":"originals/Business_Studies_11-12_Original.pdf","pages":137},{"label":"BEM1O (2024)","min":9,"max":9,"file":"originals/Business_Studies_9-10_BEM1O_2024_Original.pdf","pages":104},{"label":"BEP2O (2024)","min":10,"max":10,"file":"originals/Business_Studies_9-10_BEP2O_2024_Original.pdf","pages":48}],"secondary___canadian_and_world_studies__copy_":[{"label":"Grades 9–10","min":9,"max":10,"file":"originals/Canadian_and_World_Studies_9-10_Original.pdf","pages":198},{"label":"Grades 11–12","min":11,"max":12,"file":"originals/Canadian_and_World_Studies_11-12_Original.pdf","pages":576},{"label":"CGC1W (2024)","min":9,"max":9,"file":"originals/Canadian_and_World_Studies_9-10_CGC1W_2024_Original.pdf","pages":77}],"secondary___classical_studies_and_international__f":[{"label":"Grades 9–12","min":9,"max":12,"file":"originals/Classical_Studies_and_International_Languages_9-12_Original.pdf","pages":238}],"secondary___computer_studies__copy_":[{"label":"Grades 10–12","min":10,"max":12,"file":"originals/Computer_Studies_10-12_Original.pdf","pages":72},{"label":"ICD2O (2023)","min":10,"max":10,"file":"originals/Computer_Studies_10_ICD2O_2023_Original.pdf","pages":30}],"secondary___cooperative_education__digital___copy_":[{"label":"Grades 11–12","min":11,"max":12,"file":"originals/Cooperative_Education_11-12_Original.pdf","pages":110}],"secondary___english_as_a_second_language__copy_":[{"label":"Grades 9–12","min":9,"max":12,"file":"originals/English_as_a_Second_Language_and_English_Literacy_Development_9-12_Original.pdf","pages":188}],"secondary___first_nations__metis__and_inuit_stud__":[{"label":"Grades 9–12","min":9,"max":12,"file":"originals/First_Nations_Metis_and_Inuit_Studies_9-12_Original.pdf","pages":298}],"secondary___french_as_a_second_language__copy_":[{"label":"Grades 9–12","min":9,"max":12,"file":"originals/French_as_a_Second_Language_9-12_Original.pdf","pages":388}],"secondary___guidance_and_career_ed":[{"label":"Grades 9–10","min":9,"max":10,"file":"originals/Guidance_and_Career_Education_9-10_Original.pdf","pages":51},{"label":"Grades 11–12","min":11,"max":12,"file":"originals/Guidance_and_Career_Education_11-12_Original.pdf","pages":59},{"label":"GLC2O (2024)","min":10,"max":10,"file":"originals/Guidance_and_Career_Education_10_GLC2O_2024_Original.pdf","pages":77},{"label":"GLC2O summary","min":10,"max":10,"file":"originals/Guidance_and_Career_Education_10_GLC2O_2024_Expectations_Summary.pdf","pages":4,"btn":"Expectations summary · GLC2O"}],"secondary___health_and_physical_education__for_rev":[{"label":"Grades 9–12","min":9,"max":12,"file":"originals/Health_and_Physical_Education_9-12_Original.pdf","pages":224}],"secondary___interdisciplinary_studies__copy_":[{"label":"Grades 11–12","min":11,"max":12,"file":"originals/Interdisciplinary_Studies_11-12_Original.pdf","pages":57}],"secondary___mathematics_8c16c8b":[{"label":"Grades 9–10","min":9,"max":10,"file":"originals/Mathematics_9-10_Original.pdf","pages":68},{"label":"Grades 11–12","min":11,"max":12,"file":"originals/Mathematics_11-12_Original.pdf","pages":160},{"label":"MTH1W (2021)","min":9,"max":9,"file":"originals/Mathematics_9_MTH1W_2021_Original.pdf","pages":222}],"secondary___native_languages__copy_":[{"label":"Grades 9–10","min":9,"max":10,"file":"originals/Native_Languages_9-10_Original.pdf","pages":42},{"label":"Grades 11–12","min":11,"max":12,"file":"originals/Native_Languages_11-12_Original.pdf","pages":32}],"secondary___science__copy_":[{"label":"Grades 9–10","min":9,"max":10,"file":"originals/Science_9-10_Original.pdf","pages":108},{"label":"Grades 11–12","min":11,"max":12,"file":"originals/Science_11-12_Original.pdf","pages":264},{"label":"SNC1W (2022)","min":9,"max":9,"file":"originals/Science_9_SNC1W_2022_Original.pdf","pages":55}],"secondary___social_sciences_and_humanities__for_re":[{"label":"Grades 9–12","min":9,"max":12,"file":"originals/Social_Sciences_and_Humanities_9-12_Original.pdf","pages":408}],"secondary___technological_education__copy_":[{"label":"Grades 11–12","min":11,"max":12,"file":"originals/Technological_Education_11-12_Original.pdf","pages":388},{"label":"Grades 9–10","min":9,"max":10,"file":"originals/Technological_Education_9-10_Original.pdf","pages":94},{"label":"TAS1O summary","min":9,"max":9,"file":"originals/Technological_Education_9_TAS1O_2024_Expectations_Summary.pdf","pages":4,"btn":"Expectations summary · TAS1O"}],"secondary___the_arts__digital___copy_":[{"label":"Grades 9–10","min":9,"max":10,"file":"originals/The_Arts_9-10_Original.pdf","pages":159},{"label":"Grades 11–12","min":11,"max":12,"file":"originals/The_Arts_11-12_Original.pdf","pages":245}],"secondary___asl___lsq_5e54df0":[{"label":"Grades 9–12","min":9,"max":12,"file":"originals/American_Sign_Language_as_a_Second_Language_9-12_Original.pdf","pages":154}]};
+
+/* Picks the single most relevant PDF for a specific course, preferring (in order):
+   1) a document whose title names this exact course code
+   2) among documents matching this course's grade, one that shares a topic word with the course name
+   3) the broadest matching combined document for the grade (most likely to actually contain this course) */
+function bestPdf(subject, course){
+  var list = (subject.pdfList || []);
+  if (!list.length) return null;
+
+  var byCode = list.filter(function(p){
+    return course.code && p.title.toUpperCase().indexOf(course.code.toUpperCase()) !== -1;
+  });
+  if (byCode.length){
+    var nonFragment = byCode.filter(function(p){
+      return p.title.toLowerCase().indexOf("overall and specific expectations") === -1;
+    });
+    var pick = (nonFragment.length ? nonFragment : byCode).slice();
+    pick.sort(function(a,b){ return (b.pages||0) - (a.pages||0); });
+    return pick[0];
+  }
+
+  var g = Number((course.grade || [])[0]);
+  var withSpan = list.map(function(p){ return { p: p, span: pdfGradeSpan(p.title) }; });
+  var inGrade = g ? withSpan.filter(function(x){ return !x.span || (g >= x.span.min && g <= x.span.max); }) : withSpan;
+  if (!inGrade.length) inGrade = withSpan;
+
+  var nameWords = wordSet(course.name);
+  var named = inGrade.filter(function(x){ return sharesWord(nameWords, x.p.title); });
+
+  if (named.length){
+    named.sort(function(a,b){
+      var wa = a.span ? (a.span.max - a.span.min) : 99, wb = b.span ? (b.span.max - b.span.min) : 99;
+      return wa - wb; // narrowest (most specific) first
+    });
+    return named[0].p;
+  }
+
+  inGrade.sort(function(a,b){
+    var wa = a.span ? (a.span.max - a.span.min) : -1, wb = b.span ? (b.span.max - b.span.min) : -1;
+    return wb - wa; // widest (most likely to be the general combined doc) first
+  });
+  return inGrade.length ? inGrade[0].p : list[0];
+}
+
+function svgDownload(){
+  var s = "http://www.w3.org/2000/svg"; var svg = document.createElementNS(s, "svg");
+  svg.setAttribute("viewBox","0 0 24 24"); svg.setAttribute("fill","none"); svg.setAttribute("stroke","currentColor"); svg.setAttribute("stroke-width","2");
+  var pth = document.createElementNS(s, "path"); pth.setAttribute("d","M12 3v12m0 0l-4-4m4 4l4-4M4 19h16");
+  pth.setAttribute("stroke-linecap","round"); pth.setAttribute("stroke-linejoin","round");
+  svg.appendChild(pth); return svg;
+}
+
+/* ---------------- inline PDF viewer (for locally-published split PDFs) ----------------
+   A plain <a href> or window.open() to one of the split PDFs published alongside this
+   page is silently blocked by the viewer's sandbox (it's treated as a same-origin
+   "download", which the sandbox disables). Rendering the PDF inside an <iframe> is not
+   a download — it's the same kind of embed an <img> would use — so it works reliably. */
+var pdfModal = null;
+function ensurePdfModal(){
+  if (pdfModal) return pdfModal;
+  var titleEl = h("span", { class: "pdfmodal-title" });
+  var openLink = h("a", { class: "pdfmodal-open", target: "_blank", rel: "noopener", text: "Open in new tab ↗" });
+  var closeBtn = h("button", { class: "pdfmodal-close", type: "button", "aria-label": "Close", text: "×" });
+  var frame = h("iframe", { class: "pdfmodal-frame", title: "Course curriculum PDF" });
+  var modal = h("div", { class: "pdfmodal" }, [
+    h("div", { class: "pdfmodal-head" }, [titleEl, openLink, closeBtn]),
+    frame
+  ]);
+  var backdrop = h("div", { class: "pdfmodal-backdrop" }, [modal]);
+  function close(){ backdrop.classList.remove("open"); frame.src = "about:blank"; }
+  closeBtn.onclick = close;
+  backdrop.addEventListener("click", function(e){ if (e.target === backdrop) close(); });
+  document.addEventListener("keydown", function(e){ if (e.key === "Escape" && backdrop.classList.contains("open")) close(); });
+  document.body.appendChild(backdrop);
+  pdfModal = { backdrop: backdrop, frame: frame, titleEl: titleEl, openLink: openLink, close: close };
+  return pdfModal;
+}
+function openPdfModal(url, title){
+  var m = ensurePdfModal();
+  m.titleEl.textContent = title || "Course PDF";
+  m.openLink.setAttribute("href", url);
+  m.frame.src = url;
+  m.backdrop.classList.add("open");
+}
+
+function pdfsFor(course){
+  var l = PDFMAP[course.codename];
+  if (l && l.length) return l;
+  if (course.splitPdfFile) return [{ code: course.code, file: course.splitPdfFile }];
+  return [];
+}
+function pdfButtonEl(file, code, course, multi){
+  return h("a", {
+    class: "pdfbtn", href: file, target: "_blank", rel: "noopener",
+    title: "This course's own pages, extracted from the official Ministry curriculum document" + (multi ? " (" + code + ")." : "."),
+    "aria-label": "Open official curriculum PDF for " + code,
+    onclick: function(e){ e.stopPropagation(); }
+  }, [ svgDownload(), document.createTextNode(multi ? "PDF \u00b7 " + code : "PDF") ]);
+}
+function pdfButton(course, subject){
+  var files = pdfsFor(course);
+  if (files.length){
+    var multi = files.length > 1;
+    var els = files.map(function(f){ return pdfButtonEl(f.file, f.code || course.code, course, multi); });
+    if (!multi) return els[0];
+    return h("span", { class: "pdfbtns" }, els);
+  }
+  var p = bestPdf(subject, course);
+  if (!p) return null;
+  var isCombined = !(course.code && p.title.toUpperCase().indexOf(course.code.toUpperCase()) !== -1);
+  var titleAttr = p.title + (p.pages ? " (" + p.pages + " pages)" : "") +
+    (isCombined ? " — this is a combined document covering multiple courses; use its table of contents to find this course's section." : "");
+  return h("a", {
+    class: "pdfbtn" + (isCombined ? " combined" : ""),
+    href: p.url, target: "_blank", rel: "noopener",
+    title: titleAttr,
+    "aria-label": "Open official curriculum PDF for " + (course.code || course.name),
+    onclick: function(e){ e.stopPropagation(); }
+  }, [ svgDownload(), document.createTextNode("PDF") ]);
+}
+
+/* ---------------- rendering: course ---------------- */
+
+function renderCourseBody(course, subject, bodyEl){
+  bodyEl.appendChild(h("div", { class: "desc", html: course.description || "No description available." }));
+  var metaBits = [];
+  if (course.grade && course.grade.length) metaBits.push(h("span", null, [h("b", {text:"Grade: "}), document.createTextNode(course.grade.join(", "))]));
+  if (course.credits && course.credits.length) metaBits.push(h("span", null, [h("b", {text:"Credit: "}), document.createTextNode(course.credits.join(", "))]));
+  if (course.prerequisites) metaBits.push(h("span", null, [h("b", {text:"Prerequisite: "}), document.createTextNode(stripTags(course.prerequisites))]));
+  metaBits.push(h("span", null, [h("b", {text:"Course code: "}), document.createTextNode(course.code)]));
+  bodyEl.appendChild(h("div", { class: "metaline" }, metaBits));
+
+  if (!course.digital){
+    var isCombined = false;
+    if (!pdfsFor(course).length){
+      var p = bestPdf(subject, course);
+      isCombined = p && !(course.code && p.title.toUpperCase().indexOf(course.code.toUpperCase()) !== -1);
+    }
+    bodyEl.appendChild(h("div", { class: "notice" }, [document.createTextNode(
+      "This course's specific expectations have not yet been migrated to the digital curriculum format. Its official, full text (overall and specific expectations) is available via the PDF button above." +
+      (isCombined ? " That document covers several courses together — use its table of contents to jump to this course's section." : "")
+    )]));
+    return;
+  }
+
+  var tabsWrap = h("div", { class: "tabs", role: "tablist" });
+  var tabInfo = h("button", { class: "tab", type: "button", "aria-selected": "true", text: "Course information" });
+  var tabExp = h("button", { class: "tab", type: "button", "aria-selected": "false", text: "Overall & specific expectations" });
+  tabsWrap.appendChild(tabInfo); tabsWrap.appendChild(tabExp);
+
+  var panelInfo = h("div", { class: "tabpanel" });
+  var panelExp = h("div", { class: "tabpanel", hidden: "" });
+  var loadingRow = h("div", { class: "loading-row" }, [ h("span", {class:"spin"}), document.createTextNode("Loading expectations…") ]);
+  panelExp.appendChild(loadingRow);
+  state.expPanels[course.codename] = panelExp;
+  state.selectExpTab[course.codename] = function(){ selectTab("exp"); };
+
+  function selectTab(which){
+    var infoSel = which === "info";
+    tabInfo.setAttribute("aria-selected", infoSel ? "true" : "false");
+    tabExp.setAttribute("aria-selected", infoSel ? "false" : "true");
+    panelInfo.hidden = !infoSel;
+    panelExp.hidden = infoSel;
+    if (!infoSel) loadExpectations();
+  }
+  tabInfo.onclick = function(){ selectTab("info"); };
+  tabExp.onclick = function(){ selectTab("exp"); };
+
+  var expLoaded = false;
+  function loadExpectations(){
+    if (expLoaded) return;
+    expLoaded = true;
+    ensureContent(course.codename).then(function(sections){
+      panelExp.removeChild(loadingRow);
+      sections = sections || [];
+      var expNode = null, frontNodes = [];
+      sections.forEach(function(n){ if (!expNode && isExpectationsNode(n)) expNode = n; else frontNodes.push(n); });
+      if (expNode && course.expSource === 'csv'){
+        panelExp.appendChild(h('div', { class: 'csvnote', text: 'These expectations were transcribed from the Ministry curriculum document. Teacher prompts, sample problems and any special formatting or notation (e.g. mathematical symbols) may not appear here \u2014 use the PDF button above for the full official text.' }));
+      }
+      if (expNode){
+        var strands = expNode.children.filter(function(c){ return c.t === "l3___strand"; });
+        strands.forEach(function(s){ panelExp.appendChild(renderStrand(s)); });
+      }
+      if (!expNode){
+        panelExp.appendChild(h("p", { class: "desc", text: "No structured expectations are published for this course yet." }));
+      }
+      frontNodes.forEach(function(n){
+        var r = renderFrontmatterNode(n, false);
+        if (r) panelInfo.appendChild(r);
+      });
+      if (!frontNodes.some(isMeaningfulNode)){
+        panelInfo.appendChild(h("p", { class:"desc", text:"No additional course information published beyond the description above." }));
+      }
+      applyExpFilterFor(course.codename);
+    }).catch(function(err){
+      panelExp.removeChild(loadingRow);
+      panelExp.appendChild(h("p", { class: "notice" , text: "Could not load expectations right now. Please try again." }));
+      console.error(err);
+    });
+  }
+
+  bodyEl.appendChild(tabsWrap);
+  bodyEl.appendChild(panelInfo);
+  bodyEl.appendChild(panelExp);
+
+  // Open straight to the expectations tab. This also loads the course content right away,
+  // which is what fills in the "Course information" tab (front matter) as well.
+  selectTab("exp");
+}
+
+function renderCourse(cn){
+  var course = state.courses[cn];
+  var subject = state.subjects[course.subject] || {};
+  var det = h("details", { class: "course", "data-cn": cn, "data-blob": "" });
+  var summary = h("summary", null, [
+    svgChevron(),
+    h("span", { class: "code", text: course.code }),
+    h("span", { class: "cname", text: course.name }),
+    !course.digital ? h("span", { class: "badge-doc", text: "PDF only" }) : null,
+    course.credits && course.credits.length ? h("span", { class: "credit", text: course.credits.join(", ") + " cr" }) : null,
+    pdfButton(course, subject)
+  ]);
+  det.appendChild(summary);
+  var body = h("div", { class: "course-body" });
+  var built = false;
+  function ensureBuilt(){
+    if (built) return;
+    built = true;
+    renderCourseBody(course, subject, body);
+  }
+  // The browser fires "toggle" asynchronously when .open is set from script (it's only
+  // synchronous for a direct user click), so code that programmatically opens a course
+  // and immediately needs its body built (e.g. jumping straight to a search match) can't
+  // rely on this listener alone — it also calls state.ensureCourseBuilt[cn]() directly.
+  det.addEventListener("toggle", function(){ if (det.open) ensureBuilt(); });
+  state.ensureCourseBuilt[cn] = ensureBuilt;
+  det.appendChild(body);
+  return det;
+}
+
+/* ---------------- rendering: subject + grade ---------------- */
+
+function subjectOriginals(subjCn, grade){
+  var list = SUBJ_ORIGINALS[subjCn];
+  if (!list || !list.length) return null;
+  var g = Number(grade);
+  var hits = isNaN(g) ? list : list.filter(function(o){ return g >= o.min && g <= o.max; });
+  if (!hits.length) return null;
+  var title = (state.subjects[subjCn] || {}).title || "Subject";
+  return h("span", { class: "pdfbtns subj-orig" }, hits.map(function(o){
+    return h("a", {
+      class: "pdfbtn combined-doc", href: o.file, target: "_blank", rel: "noopener",
+      title: (o.btn ? "Ministry expectations summary for " : "The complete original Ministry curriculum document for ") + title + ", " + o.label + (o.pages ? " (" + o.pages + " pages)" : "") + ".",
+      "aria-label": "Open the complete original curriculum document for " + title + ", " + o.label,
+      onclick: function(e){ e.stopPropagation(); }
+    }, [ svgDownload(), document.createTextNode(o.btn || ("Full document \u00b7 " + o.label)) ]);
+  }));
+}
+
+function renderSubject(subjCn, courseCns, grade){
+  var subject = state.subjects[subjCn] || { title: subjCn, pdfList: [] };
+  var det = h("details", { class: "subject", "data-subj": subjCn, style: "--accent-c:var(--c-" + (subject.colour || "") + ", var(--accent));" });
+  det.appendChild(h("summary", null, [
+    svgChevron(),
+    h("span", { class: "subject-title", text: subject.title }),
+    subject.year ? h("span", { class: "subject-year", text: "(" + subject.year + ")" }) : null,
+    subjectOriginals(subjCn, grade),
+    h("span", { class: "count", text: courseCns.length + (courseCns.length === 1 ? " course" : " courses") })
+  ]));
+  var body = h("div", { class: "subject-body" });
+  courseCns.forEach(function(cn){ body.appendChild(renderCourse(cn)); });
+  det.appendChild(body);
+  return det;
+}
+
+function renderGrade(grade){
+  var subjMap = state.byGrade[grade] || {};
+  var subjCns = Object.keys(subjMap).sort(function(a,b){
+    var ta = (state.subjects[a]||{}).title || a, tb = (state.subjects[b]||{}).title || b;
+    return ta.localeCompare(tb);
+  });
+  var total = 0; subjCns.forEach(function(s){ total += subjMap[s].length; });
+  var det = h("details", { class: "grade", "data-grade": grade });
+  if (grade === "9") det.setAttribute("open", "");
+  det.appendChild(h("summary", null, [
+    svgChevron(),
+    h("span", { text: GRADE_LABEL[grade] }),
+    h("span", { class: "count", text: total + " courses · " + subjCns.length + " subjects" })
+  ]));
+  var body = h("div", { class: "grade-body" });
+  subjCns.forEach(function(s){ body.appendChild(renderSubject(s, subjMap[s], grade)); });
+  det.appendChild(body);
+  return det;
+}
+
+function renderApp(){
+  var main = document.getElementById("main");
+  main.innerHTML = "";
+  GRADE_ORDER.forEach(function(g){
+    if (Object.keys(state.byGrade[g] || {}).length) main.appendChild(renderGrade(g));
+  });
+
+  var subjCount = Object.keys(state.subjects).length;
+  var courseCount = Object.keys(state.courses).length;
+  document.getElementById("stats").innerHTML =
+    "<b>" + subjCount + "</b> subjects &middot; <b>" + courseCount + "</b> courses &middot; updated for the 2026&ndash;27 school year";
+
+  buildFilterDropdowns();
+}
+
+/* ---------------- filter dropdowns (grade / subject / level & pathway) ---------------- */
+
+function svgChevronDown(){
+  var s = "http://www.w3.org/2000/svg"; var svg = document.createElementNS(s, "svg");
+  svg.setAttribute("viewBox","0 0 16 16"); svg.setAttribute("fill","none");
+  var p = document.createElementNS(s, "path");
+  p.setAttribute("d","M3 6l5 5 5-5"); p.setAttribute("stroke","currentColor"); p.setAttribute("stroke-width","2");
+  p.setAttribute("stroke-linecap","round"); p.setAttribute("stroke-linejoin","round");
+  svg.appendChild(p); return svg;
+}
+
+var ddRefreshers = {}; // key -> function(): recomputes that dropdown's counts/enabled-state from the OTHER active filters
+
+// Does this course satisfy every active filter EXCEPT the one named excludeKey?
+// Used to work out, for a given dropdown, which of its own options are still reachable
+// given whatever the other dropdowns currently have selected (cascading facets).
+function courseMatchesFilters(course, excludeKey){
+  if (excludeKey !== "grade" && state.filters.grade.size && !state.filters.grade.has(course.gradeBucket)) return false;
+  if (excludeKey !== "subject" && state.filters.subject.size && !state.filters.subject.has(course.subject)) return false;
+  if (excludeKey !== "level" && state.filters.level.size && !state.filters.level.has(course._level)) return false;
+  return true;
+}
+
+// withSearch=false: how many courses each option could reach given the OTHER dropdowns only
+// (decides which options are selectable). withSearch=true: the same, but also narrowed to
+// courses matching the current search box, so the numbers shown track the search.
+var searchMatchCache = null;
+function computeFacetCounts(key, withSearch){
+  var counts = {};
+  Object.keys(state.courses).forEach(function(cn){
+    var c = state.courses[cn];
+    if (!courseMatchesFilters(c, key)) return;
+    if (withSearch){
+      var ok = searchMatchCache ? searchMatchCache[cn] : matches(cn);
+      if (!ok) return;
+    }
+    var v = key === "grade" ? c.gradeBucket : key === "subject" ? c.subject : c._level;
+    counts[v] = (counts[v] || 0) + 1;
+  });
+  return counts;
+}
+
+function refreshAllDropdowns(){
+  // Work out the search matches once and share them between the three dropdowns.
+  searchMatchCache = {};
+  Object.keys(state.courses).forEach(function(cn){ searchMatchCache[cn] = matches(cn); });
+  Object.keys(ddRefreshers).forEach(function(k){ ddRefreshers[k](); });
+  searchMatchCache = null;
+}
+
+function createFilterDropdown(key, label, options){
+  var wrap = h("div", { class: "filterdd", "data-key": key });
+  var btnLabel = h("span", { text: label });
+  var btnCount = h("span", { class: "ddcount", hidden: "" });
+  var btn = h("button", { class: "ddbtn", type: "button", "aria-haspopup": "true", "aria-expanded": "false" },
+    [btnLabel, btnCount, svgChevronDown()]);
+
+  var panel = h("div", { class: "ddpanel", hidden: "" });
+  var list = h("div", { class: "ddlist" });
+  var emptyNote = h("div", { class: "ddempty", text: "Nothing matches your search here.", hidden: "" });
+  var rows = []; // { value, cb, row, countEl }
+
+  function onCheckboxChange(){
+    refreshAllDropdowns();
+    applyFilter();
+  }
+
+  options.forEach(function(opt){
+    var cb = h("input", { type: "checkbox" });
+    cb.checked = state.filters[key].has(opt.value);
+    cb.addEventListener("change", function(){
+      if (cb.checked) state.filters[key].add(opt.value); else state.filters[key].delete(opt.value);
+      updateBtn();
+      onCheckboxChange();
+    });
+
+    var countEl = h("span", { class: "ddopt-n", text: String(opt.count || 0) });
+    var rowKids = [cb];
+    if (opt.colorVar) rowKids.push(h("span", { class: "ddcolor", style: "background:" + opt.colorVar + ";" }));
+    rowKids.push(h("span", { class: "ddopt-text" }, [
+      h("span", { class: "ddopt-label", text: opt.label }),
+      opt.sublabel ? h("span", { class: "ddopt-sub", text: opt.sublabel }) : null
+    ]));
+    rowKids.push(countEl);
+    var row = h("label", { class: "ddopt" }, rowKids);
+    list.appendChild(row);
+    rows.push({ value: opt.value, cb: cb, row: row, countEl: countEl });
+  });
+  list.appendChild(emptyNote);
+  panel.appendChild(list);
+
+  var actions = h("div", { class: "ddactions" });
+  var clearBtn = h("button", { class: "ddclear", type: "button", text: "Clear" });
+  clearBtn.onclick = function(){
+    state.filters[key].clear();
+    rows.forEach(function(r){ r.cb.checked = false; });
+    updateBtn();
+    onCheckboxChange();
+  };
+  var applyBtn = h("button", { class: "ddapply", type: "button", text: "Apply" });
+  applyBtn.onclick = function(){ closePanel(); };
+  actions.appendChild(clearBtn); actions.appendChild(applyBtn);
+  panel.appendChild(actions);
+
+  function updateBtn(){
+    var n = state.filters[key].size;
+    btnCount.hidden = !n;
+    if (n) btnCount.textContent = String(n);
+  }
+  function openPanel(){
+    document.querySelectorAll(".ddpanel").forEach(function(p){ if (p !== panel) p.hidden = true; });
+    document.querySelectorAll(".ddbtn").forEach(function(b){ if (b !== btn) b.setAttribute("aria-expanded", "false"); });
+    panel.hidden = false; btn.setAttribute("aria-expanded", "true");
+  }
+  function closePanel(){ panel.hidden = true; btn.setAttribute("aria-expanded", "false"); }
+  btn.addEventListener("click", function(e){
+    e.stopPropagation();
+    if (panel.hidden) openPanel(); else closePanel();
+  });
+  panel.addEventListener("click", function(e){ e.stopPropagation(); });
+
+  // Recompute this dropdown's counts from the OTHER dropdowns' current selections.
+  // An option with zero possible matches is disabled (greyed, unclickable) so a user
+  // can't pick a combination guaranteed to return nothing; a selection that becomes
+  // impossible because of a filter picked afterwards is cleared automatically.
+  function refresh(){
+    var counts = computeFacetCounts(key, false);
+    var shown = computeFacetCounts(key, true);
+    var visibleRows = 0;
+    rows.forEach(function(r){
+      var n = counts[r.value] || 0;
+      r.countEl.textContent = String(shown[r.value] || 0);
+      r.row.classList.toggle("dd-disabled", n === 0);
+      // While a search is active, options the search leaves with nothing are hidden
+      // (unless already ticked, so they can still be un-ticked).
+      var hideIt = !!state.query && !shown[r.value] && !r.cb.checked;
+      r.row.hidden = hideIt;
+      if (!hideIt) visibleRows++;
+      r.row.classList.toggle("dd-nomatch", n > 0 && !shown[r.value]);
+      if (n === 0 && r.cb.checked){
+        r.cb.checked = false;
+        state.filters[key].delete(r.value);
+      }
+      r.cb.disabled = n === 0;
+    });
+    emptyNote.hidden = visibleRows > 0;
+    updateBtn();
+  }
+  ddRefreshers[key] = refresh;
+
+  updateBtn();
+  wrap.appendChild(btn); wrap.appendChild(panel);
+  return wrap;
+}
+
+function buildFilterDropdowns(){
+  var row = document.getElementById("filterRow");
+  row.innerHTML = "";
+  ddRefreshers = {};
+
+  var gradeOptions = GRADE_ORDER.filter(function(g){ return state.counts.grade[g] > 0; }).map(function(g){
+    return { value: g, label: GRADE_LABEL[g], count: state.counts.grade[g] };
+  });
+  row.appendChild(createFilterDropdown("grade", "Grade", gradeOptions));
+
+  var subjectOptions = Object.keys(state.subjects)
+    .filter(function(sc){ return state.counts.subject[sc] > 0; })
+    .sort(function(a, b){ return state.subjects[a].title.localeCompare(state.subjects[b].title); })
+    .map(function(sc){
+      var subj = state.subjects[sc];
+      return {
+        value: sc, label: subj.title, count: state.counts.subject[sc],
+        colorVar: "var(--c-" + (subj.colour || "") + ", var(--accent))"
+      };
+    });
+  row.appendChild(createFilterDropdown("subject", "Subject", subjectOptions));
+
+  var levelOptions = LEVEL_ORDER.filter(function(l){ return state.counts.level[l] > 0; }).map(function(l){
+    return { value: l, label: LEVEL_LABEL[l], sublabel: LEVEL_SUB[l], count: state.counts.level[l] };
+  });
+  row.appendChild(createFilterDropdown("level", "Level / Pathway", levelOptions));
+
+  refreshAllDropdowns();
+
+  document.addEventListener("click", function(){
+    document.querySelectorAll(".ddpanel").forEach(function(p){ p.hidden = true; });
+    document.querySelectorAll(".ddbtn").forEach(function(b){ b.setAttribute("aria-expanded", "false"); });
+  });
+}
+
+/* ---------------- search / filter ---------------- */
+
+var GRADE_TOKEN_RE = /\bgr(?:ade)?s?\.?\s*(\d{1,2})(?:\s*(?:-|–|to|and|,|\/)\s*(\d{1,2}))?/g;
+var QUERY_STOP = {the:1,and:1,for:1,course:1,courses:1,class:1,classes:1,of:1,in:1,a:1,an:1,to:1,me:1,my:1};
+
+function tokenizeQuery(raw){
+  var q = (raw || "").toLowerCase();
+  var grades = [];
+  var rest = q.replace(GRADE_TOKEN_RE, function(full, a, b){
+    var na = parseInt(a, 10);
+    var nb = b ? parseInt(b, 10) : na;
+    var lo = Math.min(na, nb), hi = Math.max(na, nb);
+    for (var g = lo; g <= hi; g++){
+      if (g >= 9 && g <= 12 && grades.indexOf(g) === -1) grades.push(g);
+    }
+    return " ";
+  });
+  var words = rest.split(/\s+/)
+    .map(function(w){ return w.replace(/[^a-z0-9]/g, ""); })
+    .filter(function(w){ return w.length > 0 && !QUERY_STOP[w]; });
+  return { grades: grades, words: words };
+}
+
+function matches(cn){
+  var course = state.courses[cn];
+  var parsed = state.parsed || { grades: [], words: [] };
+  if (!parsed.grades.length && !parsed.words.length) return true;
+
+  if (parsed.grades.length){
+    var cg = (course.grade || []).map(Number);
+    var gradeOk = parsed.grades.some(function(g){ return cg.indexOf(g) !== -1; });
+    if (!gradeOk) return false;
+  }
+  if (!parsed.words.length) return true;
+
+  var hay = course._blob;
+  if (state.deepIndex && state.deepIndex[cn]) hay = hay + " " + state.deepIndex[cn];
+
+  return parsed.words.every(function(w){
+    // A word that names a specific subject (e.g. "english", "science") must match this
+    // course's own subject as a whole word, not just appear somewhere in its free text or
+    // as a substring of a different subject's name (e.g. "science" inside "Sciences") —
+    // otherwise a course that merely lists "English" as an alternate prerequisite, or
+    // belongs to an unrelated but similarly-named subject, would incorrectly match.
+    if (subjectSignalWords[w]) return hasWholeWord(course._subjectTitle, w);
+    return hay.indexOf(w) !== -1;
+  });
+}
+
+function hasWholeWord(haystack, word){
+  var re = new RegExp("\\b" + word.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&") + "\\b");
+  return re.test(haystack);
+}
+
+// True when a course only matched the search because of its expectation text (found via
+// deep search), not because of its own name/code/description — used to jump straight to
+// the expectations tab for that course, since that's where the actual match lives.
+function matchedViaDeepOnly(cn){
+  if (!state.deepIndex || !state.parsed.words.length) return false;
+  var course = state.courses[cn];
+  var blobAloneMatches = state.parsed.words.every(function(w){
+    if (subjectSignalWords[w]) return hasWholeWord(course._subjectTitle, w);
+    return course._blob.indexOf(w) !== -1;
+  });
+  return !blobAloneMatches;
+}
+
+function countMatching(texts, words){
+  var n = 0;
+  for (var i = 0; i < texts.length; i++){
+    var t = texts[i], ok = true;
+    for (var j = 0; j < words.length; j++){ if (t.indexOf(words[j]) === -1){ ok = false; break; } }
+    if (ok) n++;
+  }
+  return n;
+}
+
+function applyFilter(){
+  refreshAllDropdowns();
+  refreshExpFilters();
+  var active = anyFilterActive();
+  var visibleCourses = 0, visibleSubjects = 0;
+  // While searching expectation text, grade headers report matching expectations and
+  // teacher prompts instead of a subject count.
+  var deepCounting = active && !!state.deepNodes && state.parsed.words.length > 0;
+
+  document.querySelectorAll(".grade").forEach(function(gradeEl){
+    var gKey = gradeEl.getAttribute("data-grade");
+    var gradeAllowed = !state.filters.grade.size || state.filters.grade.has(gKey);
+    gradeEl.hidden = !gradeAllowed;
+    if (!gradeAllowed) return;
+
+    var gradeHasVisible = false, gradeCourses = 0, gradeSubjects = 0, gradeExp = 0, gradePrompts = 0;
+    gradeEl.querySelectorAll(".subject").forEach(function(subjEl){
+      var subjCn = subjEl.getAttribute("data-subj");
+      var subjAllowed = !state.filters.subject.size || state.filters.subject.has(subjCn);
+      subjEl.hidden = !subjAllowed;
+      if (!subjAllowed) return;
+
+      var subjHasVisible = false;
+      subjEl.querySelectorAll(".course").forEach(function(courseEl){
+        var cn = courseEl.getAttribute("data-cn");
+        var course = state.courses[cn];
+        var levelAllowed = !state.filters.level.size || state.filters.level.has(course._level);
+        var m = levelAllowed && matches(cn);
+        courseEl.hidden = !m;
+        if (m){
+          subjHasVisible = true; visibleCourses++; gradeCourses++;
+          if (deepCounting && state.deepNodes[cn]){
+            var dn = state.deepNodes[cn];
+            gradeExp += countMatching(dn.exp, state.parsed.words);
+            gradePrompts += countMatching(dn.prompts, state.parsed.words);
+          }
+          if (active){
+            var wasOpen = courseEl.open;
+            courseEl.open = true;
+            if (!wasOpen){
+              // Build the course body right now rather than waiting for the browser's
+              // (asynchronous, when triggered from script) "toggle" event, so the tab
+              // functions below are guaranteed to exist immediately.
+              if (state.ensureCourseBuilt[cn]) state.ensureCourseBuilt[cn]();
+              // Jump straight to the expectations tab the moment a course is auto-opened
+              // purely because the search term lives in its expectation text.
+              if (matchedViaDeepOnly(cn) && state.selectExpTab[cn]) state.selectExpTab[cn]();
+            }
+          }
+        }
+      });
+      subjEl.hidden = !subjHasVisible;
+      if (subjHasVisible){ gradeHasVisible = true; visibleSubjects++; gradeSubjects++; if (active) subjEl.open = true; }
+    });
+    // Hide a grade that has nothing matching, and show the matching counts in its header.
+    gradeEl.hidden = !gradeHasVisible;
+    var countEl = gradeEl.querySelector(":scope > summary .count");
+    if (countEl){
+      if (!countEl.hasAttribute("data-orig")) countEl.setAttribute("data-orig", countEl.textContent);
+      var cTxt = gradeCourses + (gradeCourses === 1 ? " course" : " courses");
+      if (!active) countEl.textContent = countEl.getAttribute("data-orig");
+      else if (deepCounting) countEl.textContent = cTxt + " · " + gradeExp + (gradeExp === 1 ? " expectation" : " expectations") +
+        " · " + gradePrompts + (gradePrompts === 1 ? " teacher prompt" : " teacher prompts");
+      else countEl.textContent = cTxt + " · " + gradeSubjects + (gradeSubjects === 1 ? " subject" : " subjects");
+    }
+    // Grade accordions start collapsed the moment a search/filter begins, so the grades
+    // can be scanned (and jumped between) at a glance; everything inside them is already
+    // opened/filtered. After that the user's own open/close choices are left alone.
+    if (active && !state.wasActive) gradeEl.open = false;
+  });
+
+  state.wasActive = active;
+  var metaEl = document.getElementById("searchMeta");
+  if (!active){ metaEl.textContent = ""; return; }
+  var desc = "<b>" + visibleCourses + "</b> course" + (visibleCourses===1?"":"s") + " in <b>" + visibleSubjects + "</b> subject" + (visibleSubjects===1?"":"s");
+  desc += state.query ? " match “" + esc(state.query) + "”" + (state.deepIndex ? " (including expectation text)" : "") : " match the selected filters";
+  metaEl.innerHTML = desc;
+}
+
+// Per-course lists of expectation texts and teacher-prompt texts, used for the counts
+// shown in each grade header while searching expectation text.
+function collectNodes(sections){
+  var out = { exp: [], prompts: [] };
+  (function walk(nodes){
+    (nodes || []).forEach(function(n){
+      if (!n) return;
+      if (n.t === "l4___overall_expectation"){
+        out.exp.push((n.html ? stripTags(n.html) : (n.title || "")).toLowerCase());
+      } else if (n.t === "l5___specific_expectation"){
+        out.exp.push(stripTags(n.html || "").toLowerCase());
+        (n.children || []).forEach(function(c){
+          if (c && c.t === "elaborations") out.prompts.push(stripTags(c.html || "").toLowerCase());
+        });
+      }
+      walk(n.children);
+    });
+  })(sections);
+  return out;
+}
+
+function extractText(nodes){
+  var out = [];
+  (nodes || []).forEach(function walk(n){
+    if (!n) return;
+    if (n.title) out.push(n.title);
+    if (n.describer) out.push(n.describer);
+    if (n.note) out.push(n.note);
+    if (n.label) out.push(n.label);
+    if (n.html) out.push(stripTags(n.html));
+    (n.children || []).forEach(walk);
+  });
+  return out.join(" ").toLowerCase();
+}
+
+function loadDeepIndex(){
+  if (state.deepIndex || state.deepLoading) return Promise.resolve();
+  state.deepLoading = true;
+  var btn = document.getElementById("deepBtn");
+  btn.classList.add("loading");
+  document.getElementById("deepBtnLabel").textContent = "Loading expectation text…";
+  var oversizedCns = Object.keys(state.courses).filter(function(cn){ return state.courses[cn].oversized; });
+  var p1 = state.db.collection("course_content").get();
+  var p2 = Promise.all(oversizedCns.map(function(cn){
+    return state.db.collection("course_content/" + cn + "/chunks").get().then(function(snap){
+      return { cn: cn, sections: reassembleChunks(snap.docs.map(function(d){ return d.data(); })) };
+    });
+  }));
+  return Promise.all([p1, p2]).then(function(res){
+    var idx = {}, nodes = {};
+    res[0].docs.forEach(function(d){
+      var secs = d.data().sections || [];
+      idx[d.id] = extractText(secs);
+      nodes[d.id] = collectNodes(secs);
+    });
+    res[1].forEach(function(o){
+      idx[o.cn] = extractText(o.sections);
+      nodes[o.cn] = collectNodes(o.sections);
+    });
+    state.deepNodes = nodes;
+    state.deepIndex = idx;
+    state.deepLoading = false;
+    btn.classList.remove("loading");
+    btn.setAttribute("aria-pressed", "true"); btn.setAttribute("aria-checked", "true");
+    document.getElementById("deepBtnLabel").textContent = "Searching expectation text too";
+    applyFilter();
+  }).catch(function(err){
+    state.deepLoading = false;
+    btn.classList.remove("loading");
+    document.getElementById("deepBtnLabel").textContent = "Couldn't load — try again";
+    console.error(err);
+  });
+}
+
+/* ---------------- wiring ---------------- */
+
+function wireControls(){
+  var input = document.getElementById("search");
+  var clearBtn = document.getElementById("clearSearch");
+  input.addEventListener("input", function(){
+    var raw = input.value.trim();
+    state.query = raw.toLowerCase();
+    state.parsed = tokenizeQuery(raw);
+    clearBtn.hidden = !input.value;
+    applyFilter();
+  });
+  clearBtn.addEventListener("click", function(){
+    input.value = ""; state.query = ""; state.parsed = { grades: [], words: [] }; clearBtn.hidden = true; applyFilter(); input.focus();
+  });
+  document.getElementById("deepBtn").addEventListener("click", function(){
+    if (state.deepIndex){
+      state.deepIndex = null;
+      state.deepNodes = null;
+      this.setAttribute("aria-pressed", "false"); this.setAttribute("aria-checked", "false");
+      document.getElementById("deepBtnLabel").textContent = "Also search expectation text";
+      applyFilter();
+      return;
+    }
+    loadDeepIndex();
+  });
+}
+
+/* ---------------- init ---------------- */
+
+function showFatal(msg){
+  document.getElementById("main").innerHTML = "<div class='empty-state'>" + esc(msg) + "</div>";
+  document.getElementById("stats").textContent = "";
+}
+
+function init(){
+  wireControls();
+  if (!window.claude || !window.claude.use){
+    showFatal("This page needs to be opened from claude.ai to load the curriculum database.");
+    return;
+  }
+  window.claude.use("db").then(function(db){
+    if (!db){ showFatal("The curriculum database isn't available in this view."); return; }
+    state.db = db;
+    return Promise.all([ db.collection("subjects").get(), db.collection("courses").get() ]);
+  }).then(function(res){
+    if (!res) return;
+    res[0].docs.forEach(function(d){ state.subjects[d.id] = d.data(); });
+    res[1].docs.forEach(function(d){
+      var c = {}; var src = d.data();
+      for (var k in src) c[k] = src[k];
+      c.codename = d.id;
+      state.courses[d.id] = c;
+    });
+    buildIndexes();
+    renderApp();
+  }).catch(function(err){
+    console.error(err);
+    showFatal("Something went wrong loading the curriculum data. Please reload the page.");
+  });
+}
+
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+else init();
+
+})();
+</script>
+
+</body></html>
