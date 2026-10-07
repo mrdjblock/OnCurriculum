@@ -693,9 +693,16 @@ function stripHighlights(root){
 function highlightWordsIn(root, words){
   // One- and two-letter fragments (typed while someone is still mid-word) would match
   // almost every word on the page and create hundreds of thousands of <mark> elements.
-  words = (words || []).filter(function(w){ return w.length >= 3; });
+  words = (words || []).filter(function(w){ return w.replace(/^"/, "").length >= 3; });
   if (!words.length) return;
-  var re = new RegExp("(" + words.map(function(w){ return w.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&"); }).join("|") + ")", "ig");
+  var esc1 = function(x){ return x.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&"); };
+  var pats = words.map(function(w){
+    // a phrase is highlighted as one unit, with any run of whitespace between its words
+    return w.charAt(0) === '"' ? w.slice(1).split(" ").map(esc1).join("\\s+") : esc1(w);
+  });
+  // longer patterns first so a phrase wins over a single word inside it
+  pats.sort(function(a, b){ return b.length - a.length; });
+  var re = new RegExp("(" + pats.join("|") + ")", "ig");
   var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
   var textNodes = [];
   var n;
@@ -746,17 +753,17 @@ function filterExpectationsInCourse(panelExp){
   var anyVisible = false;
   panelExp.querySelectorAll(".strand").forEach(function(strandEl){
     var strandBlob = strandEl.getAttribute("data-blob") || "";
-    var strandOwnMatch = words.every(function(w){ return strandBlob.indexOf(w) !== -1; });
+    var strandOwnMatch = words.every(function(w){ return termIn(strandBlob, w); });
     var strandHasVisible = false;
     strandEl.querySelectorAll(".oe").forEach(function(oeEl){
       var oeBlob = oeEl.getAttribute("data-blob") || "";
-      var oeOwnMatch = strandOwnMatch || words.every(function(w){ return oeBlob.indexOf(w) !== -1; });
+      var oeOwnMatch = strandOwnMatch || words.every(function(w){ return termIn(oeBlob, w); });
       var seHasVisible = false;
       oeEl.querySelectorAll(".se").forEach(function(seEl){
         var seBlob = seEl.getAttribute("data-blob") || "";
         // If the strand or this overall expectation itself matched, show every specific
         // expectation underneath it rather than filtering them individually too.
-        var m = oeOwnMatch || words.every(function(w){ return seBlob.indexOf(w) !== -1; });
+        var m = oeOwnMatch || words.every(function(w){ return termIn(seBlob, w); });
         seEl.hidden = !m;
         if (m) seHasVisible = true;
       });
@@ -1387,8 +1394,18 @@ function buildFilterDropdowns(){
 var GRADE_TOKEN_RE = /\bgr(?:ade)?s?\.?\s*(\d{1,2})(?:\s*(?:-|–|to|and|,|\/)\s*(\d{1,2}))?/g;
 var QUERY_STOP = {the:1,and:1,for:1,course:1,courses:1,class:1,classes:1,of:1,in:1,a:1,an:1,to:1,me:1,my:1};
 
+// Quoted text ("like this", straight or curly quotes) is an exact phrase: its words must
+// appear together, in order, as whole words. Phrases live in `words` alongside ordinary
+// words, marked by a leading double quote (a plain word never contains one).
+var PHRASE_RE = /["\u201c\u201d]([^"\u201c\u201d]*)(?:["\u201c\u201d]|$)/g;
 function tokenizeQuery(raw){
   var q = (raw || "").toLowerCase();
+  var phrases = [];
+  q = q.replace(PHRASE_RE, function(full, inner){
+    var ph = inner.replace(/\s+/g, " ").trim();
+    if (ph) phrases.push('"' + ph);
+    return " ";
+  });
   var grades = [];
   var rest = q.replace(GRADE_TOKEN_RE, function(full, a, b){
     var na = parseInt(a, 10);
@@ -1402,7 +1419,21 @@ function tokenizeQuery(raw){
   var words = rest.split(/\s+/)
     .map(function(w){ return w.replace(/[^a-z0-9]/g, ""); })
     .filter(function(w){ return w.length > 0 && !QUERY_STOP[w]; });
-  return { grades: grades, words: words };
+  return { grades: grades, words: words.concat(phrases) };
+}
+
+var phraseRECache = {};
+function phraseRE(w){
+  if (!phraseRECache[w]){
+    var pieces = w.slice(1).split(" ").map(function(x){ return x.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&"); });
+    // whole-word boundaries at both ends; any run of whitespace between the words
+    phraseRECache[w] = new RegExp("(?:^|[^a-z0-9])" + pieces.join("\\s+") + "(?![a-z0-9])");
+  }
+  return phraseRECache[w];
+}
+// Does `hay` (lower-case text) satisfy search term `w` — an ordinary word (substring) or a phrase?
+function termIn(hay, w){
+  return w.charAt(0) === '"' ? phraseRE(w).test(hay) : hay.indexOf(w) !== -1;
 }
 
 function matches(cn){
@@ -1425,6 +1456,7 @@ function matches(cn){
     // as a substring of a different subject's name (e.g. "science" inside "Sciences") —
     // otherwise a course that merely lists "English" as an alternate prerequisite, or
     // belongs to an unrelated but similarly-named subject, would incorrectly match.
+    if (w.charAt(0) === '"') return termIn(hay, w);
     if (subjectSignalWords[w]) return hasWholeWord(course._subjectTitle, w);
     return hay.indexOf(w) !== -1;
   });
@@ -1442,6 +1474,7 @@ function matchedViaDeepOnly(cn){
   if (!state.deepIndex || !state.parsed.words.length) return false;
   var course = state.courses[cn];
   var blobAloneMatches = state.parsed.words.every(function(w){
+    if (w.charAt(0) === '"') return termIn(course._blob, w);
     if (subjectSignalWords[w]) return hasWholeWord(course._subjectTitle, w);
     return course._blob.indexOf(w) !== -1;
   });
@@ -1452,7 +1485,7 @@ function countMatching(texts, words){
   var n = 0;
   for (var i = 0; i < texts.length; i++){
     var t = texts[i], ok = true;
-    for (var j = 0; j < words.length; j++){ if (t.indexOf(words[j]) === -1){ ok = false; break; } }
+    for (var j = 0; j < words.length; j++){ if (!termIn(t, words[j])){ ok = false; break; } }
     if (ok) n++;
   }
   return n;
