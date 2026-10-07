@@ -217,7 +217,8 @@ details[open] > summary .chev{transform:rotate(90deg);}
   display:flex; align-items:center; gap:12px; padding:16px 20px;
   font-family:var(--font-display); font-weight:700; font-size:1.22rem;
 }
-.grade > summary .count{margin-left:auto; font-family:var(--font-body); font-weight:600; font-size:.78rem; color:var(--ink-3); font-variant-numeric:tabular-nums;}
+.grade > summary > span:not(.count){white-space:nowrap; flex:none;}
+.grade > summary .count{margin-left:auto; min-width:0; text-align:right; font-family:var(--font-body); font-weight:600; font-size:.78rem; color:var(--ink-3); font-variant-numeric:tabular-nums;}
 .grade-body{padding:6px 12px 14px; display:flex; flex-direction:column; gap:10px;}
 
 /* subject level */
@@ -1493,6 +1494,25 @@ function countMatching(texts, words){
 
 var AUTO_OPEN_MAX = 40; // don't auto-expand (and build) more courses than this at once
 
+// Tallies, for the grade header: expectations whose own wording matches, examples (the
+// bracketed "e.g." groups) that match, counted separately from the expectations.
+function countExpAndExamples(items, words){
+  var all = function(t){
+    for (var j = 0; j < words.length; j++){ if (!termIn(t, words[j])) return false; }
+    return true;
+  };
+  var e = 0, x = 0;
+  for (var i = 0; i < items.length; i++){
+    var it = items[i], mainOK = all(it.main), exHits = 0;
+    for (var k = 0; k < it.ex.length; k++){ if (all(it.ex[k])) exHits++; }
+    if (mainOK) e++;
+    x += exHits;
+    // search words split between an expectation and its examples: still count the expectation
+    if (!mainOK && !exHits && all(it.full)) e++;
+  }
+  return { exp: e, ex: x };
+}
+
 function applyFilter(){
   state.filterVer++;
   refreshAllDropdowns();
@@ -1518,7 +1538,7 @@ function applyFilter(){
     gradeEl.hidden = !gradeAllowed;
     if (!gradeAllowed) return;
 
-    var gradeHasVisible = false, gradeCourses = 0, gradeSubjects = 0, gradeExp = 0, gradePrompts = 0;
+    var gradeHasVisible = false, gradeCourses = 0, gradeSubjects = 0, gradeExp = 0, gradeEx = 0, gradePrompts = 0;
     gradeEl.querySelectorAll(".subject").forEach(function(subjEl){
       var subjCn = subjEl.getAttribute("data-subj");
       var subjAllowed = !state.filters.subject.size || state.filters.subject.has(subjCn);
@@ -1536,7 +1556,8 @@ function applyFilter(){
           subjHasVisible = true; visibleCourses++; gradeCourses++;
           if (deepCounting && state.deepNodes[cn]){
             var dn = state.deepNodes[cn];
-            gradeExp += countMatching(dn.exp, state.parsed.words);
+            var ce = countExpAndExamples(dn.exp, state.parsed.words);
+            gradeExp += ce.exp; gradeEx += ce.ex;
             gradePrompts += countMatching(dn.prompts, state.parsed.words);
           }
           if (active && autoOpenOK){
@@ -1565,6 +1586,7 @@ function applyFilter(){
       var cTxt = gradeCourses + (gradeCourses === 1 ? " course" : " courses");
       if (!active) countEl.textContent = countEl.getAttribute("data-orig");
       else if (deepCounting) countEl.textContent = cTxt + " · " + gradeExp + (gradeExp === 1 ? " expectation" : " expectations") +
+        " · " + gradeEx + (gradeEx === 1 ? " example" : " examples") +
         " · " + gradePrompts + (gradePrompts === 1 ? " teacher prompt" : " teacher prompts");
       else countEl.textContent = cTxt + " · " + gradeSubjects + (gradeSubjects === 1 ? " subject" : " subjects");
     }
@@ -1585,15 +1607,36 @@ function applyFilter(){
 
 // Per-course lists of expectation texts and teacher-prompt texts, used for the counts
 // shown in each grade header while searching expectation text.
+// Splits an expectation's text into the expectation itself and its bracketed examples —
+// the "(e.g., …)" / "(i.e., …)" groups, shown in italics — so they can be counted separately.
+var EX_START_RE = /\(\s*(?:e\.g\.|i\.e\.|for example|for instance)/gi;
+function splitExamples(text){
+  var main = "", ex = [], i = 0, m;
+  EX_START_RE.lastIndex = 0;
+  while ((m = EX_START_RE.exec(text))){
+    var start = m.index, depth = 0, j = start;
+    for (; j < text.length; j++){
+      var ch = text.charAt(j);
+      if (ch === "(") depth++;
+      else if (ch === ")" && --depth === 0){ j++; break; }
+    }
+    main += text.slice(i, start) + " ";
+    ex.push(text.slice(start, j));
+    i = j; EX_START_RE.lastIndex = j;
+  }
+  main += text.slice(i);
+  return { full: text, main: main, ex: ex };
+}
+
 function collectNodes(sections){
   var out = { exp: [], prompts: [] };
   (function walk(nodes){
     (nodes || []).forEach(function(n){
       if (!n) return;
       if (n.t === "l4___overall_expectation"){
-        out.exp.push((n.html ? stripTags(n.html) : (n.title || "")).toLowerCase());
+        out.exp.push(splitExamples((n.html ? stripTags(n.html) : (n.title || "")).toLowerCase()));
       } else if (n.t === "l5___specific_expectation"){
-        out.exp.push(stripTags(n.html || "").toLowerCase());
+        out.exp.push(splitExamples(stripTags(n.html || "").toLowerCase()));
         (n.children || []).forEach(function(c){
           if (c && c.t === "elaborations") out.prompts.push(stripTags(c.html || "").toLowerCase());
         });
