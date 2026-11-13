@@ -88,6 +88,15 @@ header.top{padding-top:22px; padding-bottom:4px;}
   border-bottom:1px solid var(--border);
 }
 .toolbar .filterrow{margin-top:9px;}
+.filterline{display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px 16px; margin-top:9px;}
+.toolbar .filterline .filterrow{margin-top:0;}
+.extrachk{display:inline-flex; align-items:center; gap:8px; font-size:.84rem; font-weight:600; color:var(--ink-2); cursor:pointer; padding:6px 4px; user-select:none;}
+.extrachk[hidden]{display:none;}
+.extrachk input{width:17px; height:17px; margin:0; accent-color:#44a6b5; cursor:pointer;}
+.extrachk:hover{color:var(--ink);}
+.linkbtn{font:inherit; color:var(--accent); background:none; border:none; padding:0; cursor:pointer; text-decoration:underline; text-underline-offset:2px;}
+.meta-hint{color:var(--ink-3);}
+.exp-note{font-size:.82rem; line-height:1.45; color:var(--ink-2); background:var(--surface-2); border:1px solid var(--border); border-radius:8px; padding:8px 12px; margin:2px 0 12px;}
 .toolbar .searchmeta{margin-top:7px; min-height:0;}
 .toolbar .searchmeta:empty{display:none;}
 h1{
@@ -403,7 +412,12 @@ footer a{color:var(--ink-3);}
         <span class="track" aria-hidden="true"><span class="knob"></span></span>
       </button>
     </div>
-    <div class="filterrow" id="filterRow"></div>
+    <div class="filterline">
+      <div class="filterrow" id="filterRow"></div>
+      <label class="extrachk" id="extraWrap" hidden title="Also match the bracketed examples (e.g., &hellip;), Teacher Prompts, Sample questions and Instructional tips inside each expectation">
+        <input type="checkbox" id="extraChk"><span>Include examples, prompts &amp; tips</span>
+      </label>
+    </div>
     <div class="searchmeta" id="searchMeta"></div>
   </div>
 
@@ -470,7 +484,7 @@ var state = {
   contentCache: {},     // course codename -> sections array
   expPanels: {},        // course codename -> rendered "Overall & specific expectations" panel element
   selectExpTab: {},      // course codename -> function that switches that course to the expectations tab
-  expVer: {}, filterVer: 0, deepHay: null, // per-course filter version (stale panels refresh when opened); cached search text
+  expVer: {}, filterVer: 0, includeExtras: false, // per-course filter version (stale panels refresh when opened); cached search text
   ensureCourseBuilt: {}, // course codename -> function that synchronously builds the course body if not built yet
   deepNodes: null,      // course codename -> { exp: [text of each overall/specific expectation], prompts: [text of each teacher prompt/example box] }
   deepIndex: null,      // course codename -> lowercase plain text (only when deep search loaded)
@@ -501,7 +515,20 @@ function h(tag, attrs, children){
   if (children) children.forEach(function(c){ if (c) el.appendChild(c); });
   return el;
 }
-function stripTags(s){ return (s||"").replace(/<[^>]*>/g," ").replace(/\s+/g," ").trim(); }
+var HTML_ENT = { nbsp: " ", amp: "&", lt: "<", gt: ">", quot: '"', apos: "'" };
+function stripTags(s){
+  return (s||"")
+    .replace(/<\/?(?:em|i|b|strong|span|a|sub|sup|u|small|mark|code|s|abbr|cite|q|font)\b[^>]*>/gi, "")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, function(m, e){
+      if (e.charAt(0) === "#"){
+        var code = /^#x/i.test(e) ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10);
+        return isNaN(code) ? m : String.fromCharCode(code);
+      }
+      return HTML_ENT.hasOwnProperty(e.toLowerCase()) ? HTML_ENT[e.toLowerCase()] : m;
+    })
+    .replace(/\s+/g, " ").trim();
+}
 function esc(s){ var d=document.createElement("div"); d.textContent = s||""; return d.innerHTML; }
 
 /* ---------------- data loading ---------------- */
@@ -638,10 +665,26 @@ function ownNodeText(node){
   return out.join(" ").toLowerCase();
 }
 
+// Searchable text of one overall/specific expectation, split into its own wording ("w") and
+// the supporting material inside it ("x"): the bracketed examples, plus any Teacher Prompts,
+// Sample questions or Instructional tips. Only text that is actually shown on the page is used
+// (not the hidden short titles some expectations carry), so a match is always visible.
+var PART_SEP = " \u00a6 "; // keeps a quoted phrase from running from one piece into the next
+function expParts(node){
+  var raw = node.t === "l4___overall_expectation"
+    ? (node.html ? stripTags(node.html) : (node.title || ""))
+    : stripTags(node.html || "");
+  var sp = splitExamples(raw.toLowerCase());
+  var notes = (node.children || []).filter(function(c){ return c && c.t === "elaborations"; })
+    .map(function(c){ return stripTags(c.html || "").toLowerCase(); });
+  var x = sp.ex.concat(notes).join(PART_SEP);
+  return { w: sp.main, ex: sp.ex, notes: notes, x: x, all: sp.main + PART_SEP + x };
+}
+
 function renderSE(node){
   var elabs = (node.children || []).filter(function(c){ return c.t === "elaborations"; });
-  var blob = ownNodeText(node) + " " + elabs.map(ownNodeText).join(" ");
-  return h("li", { class: "se", "data-blob": blob }, [
+  var parts = expParts(node);
+  return h("li", { class: "se", "data-w": parts.w, "data-x": parts.x }, [
     node.idx ? h("span", { class: "se-idx", text: node.idx }) : null,
     h("div", { class: "se-main" }, [
       h("div", { class: "fm-html", html: node.html || "" }),
@@ -653,7 +696,8 @@ function renderSE(node){
 function renderOE(node, strandLead){
   var ses = (node.children || []).filter(function(c){ return c.t === "l5___specific_expectation"; });
   var lead = node.describer && node.describer !== strandLead ? node.describer : null;
-  return h("div", { class: "oe", "data-blob": ownNodeText(node) }, [
+  var parts = expParts(node);
+  return h("div", { class: "oe", "data-w": parts.w, "data-x": parts.x }, [
     h("div", { class: "oe-head" }, [
       h("span", { class: "oe-idx", text: node.idx || "" }),
       h("div", { class: "oe-text", html: node.html || esc(node.title || "") })
@@ -665,7 +709,7 @@ function renderOE(node, strandLead){
 
 function renderStrand(node){
   var oes = (node.children || []).filter(function(c){ return c.t === "l4___overall_expectation"; });
-  var det = h("details", { class: "strand", "data-blob": ownNodeText(node) });
+  var det = h("details", { class: "strand" });
   det.appendChild(h("summary", null, [
     svgChevron(),
     h("span", { class: "strand-idx", text: node.idx || "" }),
@@ -691,6 +735,7 @@ function stripHighlights(root){
   root.normalize();
 }
 
+var INLINE_TAGS = { EM:1, I:1, B:1, STRONG:1, SPAN:1, A:1, SUB:1, SUP:1, U:1, MARK:1, CODE:1, SMALL:1, S:1, ABBR:1, CITE:1, Q:1, FONT:1 };
 function highlightWordsIn(root, words){
   // One- and two-letter fragments (typed while someone is still mid-word) would match
   // almost every word on the page and create hundreds of thousands of <mark> elements.
@@ -704,28 +749,52 @@ function highlightWordsIn(root, words){
   // longer patterns first so a phrase wins over a single word inside it
   pats.sort(function(a, b){ return b.length - a.length; });
   var re = new RegExp("(" + pats.join("|") + ")", "ig");
-  var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
-  var textNodes = [];
-  var n;
-  while ((n = walker.nextNode())) textNodes.push(n);
-  textNodes.forEach(function(node){
-    re.lastIndex = 0;
-    var text = node.nodeValue;
-    if (!re.test(text)) return;
-    re.lastIndex = 0;
-    var frag = document.createDocumentFragment();
-    var lastIndex = 0, m;
-    while ((m = re.exec(text))){
-      if (m.index > lastIndex) frag.appendChild(document.createTextNode(text.slice(lastIndex, m.index)));
-      var mark = document.createElement("mark");
-      mark.className = "sehit";
-      mark.textContent = m[0];
-      frag.appendChild(mark);
-      lastIndex = re.lastIndex;
-      if (m.index === re.lastIndex) re.lastIndex++; // guard against zero-length matches
+  // Gather the text of each paragraph-level block as one string, so a word or phrase that is
+  // split across formatting (e.g. "literary <em>essay</em>") is still found and highlighted.
+  var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode: function(n){
+      var p = n.parentNode;
+      return p && p.classList && p.classList.contains("exp-note") ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
     }
-    if (lastIndex < text.length) frag.appendChild(document.createTextNode(text.slice(lastIndex)));
-    node.parentNode.replaceChild(frag, node);
+  });
+  var groups = [], cur = null, curBlock = null, n;
+  while ((n = walker.nextNode())){
+    var blk = n.parentNode;
+    while (blk && blk !== root && INLINE_TAGS[blk.tagName]) blk = blk.parentNode;
+    if (blk !== curBlock){ cur = { nodes: [], text: "" }; groups.push(cur); curBlock = blk; }
+    cur.nodes.push({ node: n, start: cur.text.length });
+    cur.text += n.nodeValue;
+  }
+  groups.forEach(function(g){
+    var ranges = [], m;
+    re.lastIndex = 0;
+    while ((m = re.exec(g.text))){
+      if (!m[0].length){ re.lastIndex++; continue; }
+      ranges.push([m.index, m.index + m[0].length]);
+    }
+    if (!ranges.length) return;
+    g.nodes.forEach(function(entry){
+      var node = entry.node, text = node.nodeValue, s0 = entry.start, s1 = s0 + text.length;
+      var pieces = [], pos = 0;
+      ranges.forEach(function(r){
+        var a = Math.max(r[0], s0) - s0, b = Math.min(r[1], s1) - s0;
+        if (a >= b) return;
+        if (a > pos) pieces.push([text.slice(pos, a), false]);
+        pieces.push([text.slice(a, b), true]);
+        pos = b;
+      });
+      if (!pieces.length) return;
+      if (pos < text.length) pieces.push([text.slice(pos), false]);
+      var frag = document.createDocumentFragment();
+      pieces.forEach(function(pc){
+        if (!pc[1]){ frag.appendChild(document.createTextNode(pc[0])); return; }
+        var mark = document.createElement("mark");
+        mark.className = "sehit";
+        mark.textContent = pc[0];
+        frag.appendChild(mark);
+      });
+      node.parentNode.replaceChild(frag, node);
+    });
   });
 }
 
@@ -748,56 +817,96 @@ function syncElaborations(panelExp, searching){
   });
 }
 
-function filterExpectationsInCourse(panelExp){
-  var words = state.parsed.words;
+function allTerms(text, terms){
+  for (var j = 0; j < terms.length; j++){ if (!termIn(text, terms[j])) return false; }
+  return true;
+}
+
+// Does this expectation element match? Its own wording always counts; the examples,
+// prompts and tips inside it count only when "Include examples, prompts & tips" is ticked.
+function expElMatches(el, terms, extras){
+  var w = el.getAttribute("data-w") || "";
+  if (allTerms(w, terms)) return true;
+  return !!extras && allTerms(w + PART_SEP + (el.getAttribute("data-x") || ""), terms);
+}
+
+function filterExpectationsInCourse(panelExp, terms, hlWords){
+  var extras = !!state.includeExtras;
   stripHighlights(panelExp);
-  var anyVisible = false;
+  var anyVisible = false, extrasWould = false;
   panelExp.querySelectorAll(".strand").forEach(function(strandEl){
-    var strandBlob = strandEl.getAttribute("data-blob") || "";
-    var strandOwnMatch = words.every(function(w){ return termIn(strandBlob, w); });
     var strandHasVisible = false;
     strandEl.querySelectorAll(".oe").forEach(function(oeEl){
-      var oeBlob = oeEl.getAttribute("data-blob") || "";
-      var oeOwnMatch = strandOwnMatch || words.every(function(w){ return termIn(oeBlob, w); });
+      var oeMatch = expElMatches(oeEl, terms, extras);
+      if (!oeMatch && !extras && expElMatches(oeEl, terms, true)) extrasWould = true;
       var seHasVisible = false;
+      // Each specific expectation is shown only if it matches itself — an overall
+      // expectation matching no longer pulls in every specific expectation beneath it.
       oeEl.querySelectorAll(".se").forEach(function(seEl){
-        var seBlob = seEl.getAttribute("data-blob") || "";
-        // If the strand or this overall expectation itself matched, show every specific
-        // expectation underneath it rather than filtering them individually too.
-        var m = oeOwnMatch || words.every(function(w){ return termIn(seBlob, w); });
+        var m = expElMatches(seEl, terms, extras);
+        if (!m && !extras && expElMatches(seEl, terms, true)) extrasWould = true;
         seEl.hidden = !m;
         if (m) seHasVisible = true;
       });
-      var oeVisible = oeOwnMatch || seHasVisible;
+      var list = oeEl.querySelector(".selist");
+      if (list) list.hidden = !seHasVisible;
+      var lead = oeEl.querySelector(":scope > .oe-lead");
+      if (lead) lead.hidden = !seHasVisible;
+      var oeVisible = oeMatch || seHasVisible;
       oeEl.hidden = !oeVisible;
       if (oeVisible) strandHasVisible = true;
     });
     strandEl.hidden = !strandHasVisible;
     if (strandHasVisible){ anyVisible = true; strandEl.open = true; }
   });
-  highlightWordsIn(panelExp, words);
-  syncElaborations(panelExp, true);
-  return anyVisible;
+  highlightWordsIn(panelExp, hlWords);
+  syncElaborations(panelExp, extras);
+  return { any: anyVisible, extrasWould: extrasWould };
 }
 
 function unhideExpectations(panelExp){
-  panelExp.querySelectorAll(".strand, .oe, .se").forEach(function(el){ el.hidden = false; });
+  panelExp.querySelectorAll(".strand, .oe, .se, .selist, .oe-lead").forEach(function(el){ el.hidden = false; });
 }
+
+// A short explanation at the top of a course's expectations while searching.
+function setExpNote(panelExp, msg){
+  var note = panelExp.querySelector(":scope > .exp-note");
+  if (!msg){ if (note) note.remove(); return; }
+  if (!note){
+    note = h("div", { class: "exp-note" });
+    panelExp.insertBefore(note, panelExp.firstChild);
+  }
+  note.textContent = msg;
+}
+
+var EXTRAS_LABEL = "Include examples, prompts & tips";
 
 function applyExpFilterFor(cn){
   var panelExp = state.expPanels[cn];
   if (!panelExp) return;
   state.expVer[cn] = state.filterVer;
   if (state.deepIndex && state.parsed.words && state.parsed.words.length){
-    var any = filterExpectationsInCourse(panelExp);
-    // Term wasn't concentrated in any single expectation — fall back to showing all of
-    // them, but keep the highlights (set above) so every occurrence is still easy to spot.
-    if (!any) unhideExpectations(panelExp);
-  } else {
-    stripHighlights(panelExp);
-    syncElaborations(panelExp, false);
-    unhideExpectations(panelExp);
+    var t = expTermsFor(cn);
+    if (t.req.length){
+      var r = filterExpectationsInCourse(panelExp, t.req, t.hl);
+      if (!r.any){
+        // Nothing here contains the search (the course matched on its own name or
+        // description), so show every expectation, and say why.
+        unhideExpectations(panelExp);
+        setExpNote(panelExp, "None of this course\u2019s expectations contain " +
+          (t.req.length > 1 ? "all of your search words" : "\u201c" + t.req[0].replace(/^"/, "") + "\u201d") +
+          " \u2014 the course matched on its name or description, so all of its expectations are shown." +
+          (r.extrasWould ? " Tick \u201c" + EXTRAS_LABEL + "\u201d to search the examples and teacher notes too." : ""));
+      } else {
+        setExpNote(panelExp, r.extrasWould ? "More matches are in examples, prompts or tips \u2014 tick \u201c" + EXTRAS_LABEL + "\u201d to show them." : null);
+      }
+      return;
+    }
   }
+  setExpNote(panelExp, null);
+  stripHighlights(panelExp);
+  syncElaborations(panelExp, false);
+  unhideExpectations(panelExp);
 }
 
 // Only courses that are currently showing and expanded are re-filtered/re-highlighted.
@@ -1437,6 +1546,53 @@ function termIn(hay, w){
   return w.charAt(0) === '"' ? phraseRE(w).test(hay) : hay.indexOf(w) !== -1;
 }
 
+// Results depend only on the query and the two expectation-search settings, so they are
+// cached per course until one of those changes.
+function searchCache(){
+  var key = state.query + "\u0001" + (state.deepNodes ? 1 : 0) + (state.includeExtras ? 1 : 0);
+  if (state._cacheKey !== key){ state._cacheKey = key; state._match = {}; state._terms = {}; }
+}
+
+// Is search word `w` satisfied by the course itself (name, code, description, subject)?
+function blobHas(course, w){
+  if (w.charAt(0) === '"') return termIn(course._blob, w);
+  // A word that names a specific subject (e.g. "english", "science") must match this
+  // course's own subject as a whole word, not just appear somewhere in its free text or
+  // as a substring of a different subject's name (e.g. "science" inside "Sciences").
+  if (subjectSignalWords[w]) return hasWholeWord(course._subjectTitle, w);
+  return course._blob.indexOf(w) !== -1;
+}
+function blobMatches(cn){
+  var course = state.courses[cn];
+  return state.parsed.words.every(function(w){ return blobHas(course, w); });
+}
+
+// Which search words have to be found inside a single expectation of course `cn`, and which
+// to highlight there. Words naming the course's own subject are already satisfied by the
+// course; words found only in the course's own name/code/description (e.g. "eng2d") are too.
+function expTermsFor(cn){
+  searchCache();
+  if (state._terms[cn]) return state._terms[cn];
+  var c = state.courses[cn], d = state.deepNodes && state.deepNodes[cn];
+  var idx = d ? (state.includeExtras ? d.all : d.w) : "";
+  var words = state.parsed.words.filter(function(w){
+    return !(w.charAt(0) !== '"' && subjectSignalWords[w] && hasWholeWord(c._subjectTitle, w));
+  });
+  var notInCourse = words.filter(function(w){ return !blobHas(c, w); });
+  var res;
+  if (notInCourse.length){
+    res = { req: notInCourse, hl: words.filter(function(w){ return notInCourse.indexOf(w) !== -1 || termIn(idx, w); }) };
+  } else {
+    var inExp = words.filter(function(w){ return termIn(idx, w); });
+    res = { req: inExp, hl: inExp };
+  }
+  return (state._terms[cn] = res);
+}
+
+function itemMatches(it, terms){
+  return allTerms(state.includeExtras ? it.all : it.w, terms);
+}
+
 function matches(cn){
   var course = state.courses[cn];
   var parsed = state.parsed || { grades: [], words: [] };
@@ -1449,18 +1605,25 @@ function matches(cn){
   }
   if (!parsed.words.length) return true;
 
-  var hay = (state.deepHay && state.deepHay[cn]) || course._blob;
-
-  return parsed.words.every(function(w){
-    // A word that names a specific subject (e.g. "english", "science") must match this
-    // course's own subject as a whole word, not just appear somewhere in its free text or
-    // as a substring of a different subject's name (e.g. "science" inside "Sciences") —
-    // otherwise a course that merely lists "English" as an alternate prerequisite, or
-    // belongs to an unrelated but similarly-named subject, would incorrectly match.
-    if (w.charAt(0) === '"') return termIn(hay, w);
-    if (subjectSignalWords[w]) return hasWholeWord(course._subjectTitle, w);
-    return hay.indexOf(w) !== -1;
-  });
+  searchCache();
+  if (state._match.hasOwnProperty(cn)) return state._match[cn];
+  var result = (function(){
+    if (blobMatches(cn)) return true;
+    var d = state.deepNodes && state.deepNodes[cn];
+    if (!d) return false;
+    // a word naming a different subject still rules the course out, as in the normal search
+    for (var i = 0; i < parsed.words.length; i++){
+      var w = parsed.words[i];
+      if (w.charAt(0) !== '"' && subjectSignalWords[w] && !hasWholeWord(course._subjectTitle, w)) return false;
+    }
+    // Otherwise every remaining word must appear together in ONE expectation, so there is
+    // always a specific, visible expectation to show for this course.
+    var req = expTermsFor(cn).req;
+    if (!req.length) return false;
+    for (var k = 0; k < d.items.length; k++){ if (itemMatches(d.items[k], req)) return true; }
+    return false;
+  })();
+  return (state._match[cn] = result);
 }
 
 function hasWholeWord(haystack, word){
@@ -1473,44 +1636,41 @@ function hasWholeWord(haystack, word){
 // the expectations tab for that course, since that's where the actual match lives.
 function matchedViaDeepOnly(cn){
   if (!state.deepIndex || !state.parsed.words.length) return false;
-  var course = state.courses[cn];
-  var blobAloneMatches = state.parsed.words.every(function(w){
-    if (w.charAt(0) === '"') return termIn(course._blob, w);
-    if (subjectSignalWords[w]) return hasWholeWord(course._subjectTitle, w);
-    return course._blob.indexOf(w) !== -1;
-  });
-  return !blobAloneMatches;
-}
-
-function countMatching(texts, words){
-  var n = 0;
-  for (var i = 0; i < texts.length; i++){
-    var t = texts[i], ok = true;
-    for (var j = 0; j < words.length; j++){ if (!termIn(t, words[j])){ ok = false; break; } }
-    if (ok) n++;
-  }
-  return n;
+  return !blobMatches(cn);
 }
 
 var AUTO_OPEN_MAX = 40; // don't auto-expand (and build) more courses than this at once
 
-// Tallies, for the grade header: expectations whose own wording matches, examples (the
-// bracketed "e.g." groups) that match, counted separately from the expectations.
-function countExpAndExamples(items, words){
-  var all = function(t){
-    for (var j = 0; j < words.length; j++){ if (!termIn(t, words[j])) return false; }
-    return true;
-  };
-  var e = 0, x = 0;
-  for (var i = 0; i < items.length; i++){
-    var it = items[i], mainOK = all(it.main), exHits = 0;
-    for (var k = 0; k < it.ex.length; k++){ if (all(it.ex[k])) exHits++; }
-    if (mainOK) e++;
-    x += exHits;
-    // search words split between an expectation and its examples: still count the expectation
-    if (!mainOK && !exHits && all(it.full)) e++;
-  }
-  return { exp: e, ex: x };
+// Tallies for the grade header: expectations whose own wording matches; and, when examples,
+// prompts & tips are included, the matching examples (bracketed "e.g." groups) and the
+// matching Teacher Prompts / Sample questions / Instructional tips, each counted separately.
+function countForCourse(cn){
+  var out = { e: 0, x: 0, p: 0 };
+  var d = state.deepNodes && state.deepNodes[cn];
+  var t = expTermsFor(cn).req;
+  if (!d || !t.length) return out;
+  var extras = !!state.includeExtras;
+  d.items.forEach(function(it){
+    var mainOK = allTerms(it.w, t);
+    if (mainOK) out.e++;
+    if (!extras) return;
+    var hits = 0;
+    it.ex.forEach(function(x){ if (allTerms(x, t)){ out.x++; hits++; } });
+    it.notes.forEach(function(x){ if (allTerms(x, t)){ out.p++; hits++; } });
+    // search words split between an expectation and its examples/notes: still count it
+    if (!mainOK && !hits && allTerms(it.all, t)) out.e++;
+  });
+  return out;
+}
+
+function countCoursesWithExtras(){
+  var saved = state.includeExtras, n = 0;
+  state.includeExtras = true;
+  Object.keys(state.courses).forEach(function(cn){
+    if (courseMatchesFilters(state.courses[cn], null) && matches(cn)) n++;
+  });
+  state.includeExtras = saved;
+  return n;
 }
 
 function applyFilter(){
@@ -1530,7 +1690,9 @@ function applyFilter(){
   var visibleCourses = 0, visibleSubjects = 0;
   // While searching expectation text, grade headers report matching expectations and
   // teacher prompts instead of a subject count.
-  var deepCounting = active && !!state.deepNodes && state.parsed.words.length > 0;
+  var deepCounting = active && !!state.deepNodes && state.parsed.words.some(function(w){
+    return w.charAt(0) === '"' || !subjectSignalWords[w];
+  });
 
   document.querySelectorAll(".grade").forEach(function(gradeEl){
     var gKey = gradeEl.getAttribute("data-grade");
@@ -1554,11 +1716,9 @@ function applyFilter(){
         courseEl.hidden = !m;
         if (m){
           subjHasVisible = true; visibleCourses++; gradeCourses++;
-          if (deepCounting && state.deepNodes[cn]){
-            var dn = state.deepNodes[cn];
-            var ce = countExpAndExamples(dn.exp, state.parsed.words);
-            gradeExp += ce.exp; gradeEx += ce.ex;
-            gradePrompts += countMatching(dn.prompts, state.parsed.words);
+          if (deepCounting){
+            var ce = countForCourse(cn);
+            gradeExp += ce.e; gradeEx += ce.x; gradePrompts += ce.p;
           }
           if (active && autoOpenOK){
             var wasOpen = courseEl.open;
@@ -1586,8 +1746,8 @@ function applyFilter(){
       var cTxt = gradeCourses + (gradeCourses === 1 ? " course" : " courses");
       if (!active) countEl.textContent = countEl.getAttribute("data-orig");
       else if (deepCounting) countEl.textContent = cTxt + " · " + gradeExp + (gradeExp === 1 ? " expectation" : " expectations") +
-        " · " + gradeEx + (gradeEx === 1 ? " example" : " examples") +
-        " · " + gradePrompts + (gradePrompts === 1 ? " teacher prompt" : " teacher prompts");
+        (state.includeExtras ? " · " + gradeEx + (gradeEx === 1 ? " example" : " examples") +
+          " · " + gradePrompts + (gradePrompts === 1 ? " prompt/tip" : " prompts & tips") : "");
       else countEl.textContent = cTxt + " · " + gradeSubjects + (gradeSubjects === 1 ? " subject" : " subjects");
     }
     // Grade accordions start collapsed the moment a search/filter begins, so the grades
@@ -1601,7 +1761,13 @@ function applyFilter(){
   var metaEl = document.getElementById("searchMeta");
   if (!active){ metaEl.textContent = ""; return; }
   var desc = "<b>" + visibleCourses + "</b> course" + (visibleCourses===1?"":"s") + " in <b>" + visibleSubjects + "</b> subject" + (visibleSubjects===1?"":"s");
-  desc += state.query ? " match “" + esc(state.query) + "”" + (state.deepIndex ? " (including expectation text)" : "") : " match the selected filters";
+  desc += state.query ? " match “" + esc(state.query) + "”" + (state.deepIndex ? (state.includeExtras ? " (including expectations, examples, prompts & tips)" : " (including expectation text)") : "") : " match the selected filters";
+  // With examples, prompts & tips left out, say how many more courses they would add.
+  if (state.deepIndex && !state.includeExtras && state.parsed.words.length){
+    var more = countCoursesWithExtras() - visibleCourses;
+    if (more > 0) desc += " <span class=\"meta-hint\">\u00b7 " + more + " more course" + (more === 1 ? "" : "s") +
+      " with it in examples, prompts or tips \u2014 <button type=\"button\" class=\"linkbtn\" data-act=\"extras\">include them</button></span>";
+  }
   metaEl.innerHTML = desc;
 }
 
@@ -1628,37 +1794,23 @@ function splitExamples(text){
   return { full: text, main: main, ex: ex };
 }
 
+// Every overall and specific expectation of a course, as searchable parts (see expParts).
+// Course-information text and strand headings are deliberately left out: the expectation
+// search only finds words that appear in an expectation (or, optionally, inside one).
 function collectNodes(sections){
-  var out = { exp: [], prompts: [] };
+  var items = [];
   (function walk(nodes){
     (nodes || []).forEach(function(n){
       if (!n) return;
-      if (n.t === "l4___overall_expectation"){
-        out.exp.push(splitExamples((n.html ? stripTags(n.html) : (n.title || "")).toLowerCase()));
-      } else if (n.t === "l5___specific_expectation"){
-        out.exp.push(splitExamples(stripTags(n.html || "").toLowerCase()));
-        (n.children || []).forEach(function(c){
-          if (c && c.t === "elaborations") out.prompts.push(stripTags(c.html || "").toLowerCase());
-        });
-      }
+      if (n.t === "l4___overall_expectation" || n.t === "l5___specific_expectation") items.push(expParts(n));
       walk(n.children);
     });
   })(sections);
-  return out;
-}
-
-function extractText(nodes){
-  var out = [];
-  (nodes || []).forEach(function walk(n){
-    if (!n) return;
-    if (n.title) out.push(n.title);
-    if (n.describer) out.push(n.describer);
-    if (n.note) out.push(n.note);
-    if (n.label) out.push(n.label);
-    if (n.html) out.push(stripTags(n.html));
-    (n.children || []).forEach(walk);
-  });
-  return out.join(" ").toLowerCase();
+  return {
+    items: items,
+    w: items.map(function(it){ return it.w; }).join(PART_SEP),
+    all: items.map(function(it){ return it.all; }).join(PART_SEP)
+  };
 }
 
 function loadDeepIndex(){
@@ -1675,21 +1827,12 @@ function loadDeepIndex(){
     });
   }));
   return Promise.all([p1, p2]).then(function(res){
-    var idx = {}, nodes = {};
-    res[0].docs.forEach(function(d){
-      var secs = d.data().sections || [];
-      idx[d.id] = extractText(secs);
-      nodes[d.id] = collectNodes(secs);
-    });
-    res[1].forEach(function(o){
-      idx[o.cn] = extractText(o.sections);
-      nodes[o.cn] = collectNodes(o.sections);
-    });
-    var hay = {};
-    Object.keys(idx).forEach(function(cn){ if (state.courses[cn]) hay[cn] = state.courses[cn]._blob + " " + idx[cn]; });
-    state.deepHay = hay;
+    var nodes = {};
+    res[0].docs.forEach(function(d){ nodes[d.id] = collectNodes(d.data().sections || []); });
+    res[1].forEach(function(o){ nodes[o.cn] = collectNodes(o.sections); });
     state.deepNodes = nodes;
-    state.deepIndex = idx;
+    state.deepIndex = nodes;
+    document.getElementById("extraWrap").hidden = false;
     state.deepLoading = false;
     btn.classList.remove("loading");
     btn.setAttribute("aria-pressed", "true"); btn.setAttribute("aria-checked", "true");
@@ -1729,13 +1872,26 @@ function wireControls(){
     if (state.deepIndex){
       state.deepIndex = null;
       state.deepNodes = null;
-      state.deepHay = null;
+      document.getElementById("extraWrap").hidden = true;
       this.setAttribute("aria-pressed", "false"); this.setAttribute("aria-checked", "false");
       document.getElementById("deepBtnLabel").textContent = "Also search expectation text";
       applyFilter();
       return;
     }
     loadDeepIndex();
+  });
+  var extraChk = document.getElementById("extraChk");
+  extraChk.checked = false;
+  extraChk.addEventListener("change", function(){
+    state.includeExtras = extraChk.checked;
+    applyFilter();
+  });
+  document.getElementById("searchMeta").addEventListener("click", function(e){
+    var b = e.target.closest && e.target.closest('[data-act="extras"]');
+    if (!b) return;
+    extraChk.checked = true;
+    state.includeExtras = true;
+    applyFilter();
   });
 }
 
