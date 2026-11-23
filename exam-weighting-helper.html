@@ -28,6 +28,8 @@ th { font-weight: 700; text-transform: uppercase; font-size: 13px; background: #
 th small { display: block; font-weight: 400; text-transform: none; font-style: italic; font-size: 11px; color: var(--muted) }
 td.b { font-weight: 700 }
 .scroll { overflow-x: auto }
+.paper { border: 1px solid #dadce0; padding: 0.5in; margin-top: 18px; max-width: calc(6.5in + 1in); overflow-x: auto; background: #fff }
+.pgbrk { border-top: 1px dashed #bdc1c6; margin: 28px -0.5in 24px; text-align: center; font-size: 11px; color: #9aa0a6; line-height: 0 } .pgbrk::first-line { background: #fff }
 input[type=text], input[type=number], select, textarea {
   font: inherit; color: inherit; border: 1px solid transparent; background: transparent; padding: 2px 4px; margin: -3px -5px; border-radius: 3px; width: calc(100% + 10px) }
 input[type=number] { max-width: 90px } input.n-s { max-width: 70px }
@@ -74,6 +76,7 @@ td.c1 i { display: block; font-size: 12.5px }
   <div class="title">Exam Weighting Helper</div>
   <button class="tab on" data-tab="1">Weighting</button>
   <button class="tab" data-tab="2" id="tab2">Marking tools (optional)</button>
+  <button class="tab" data-tab="3">Exam document</button>
 </div></div>
 
 <!-- ============ PAGE 1 ============ -->
@@ -140,6 +143,14 @@ td.c1 i { display: block; font-size: 12.5px }
   </div>
 </div>
 
+<!-- ============ PAGE 3 ============ -->
+<div class="page hidden" id="page3">
+  <h1>Exam document</h1>
+  <p class="muted">Everything you’ve entered, laid out in the department’s exam format: a cover page with the summary of marks, then each section with its marking tool. Copy it into Google Docs or Word, then add your instructions and questions under each section.</p>
+  <div class="tools noprint"><button class="btn" data-copy="doc">Copy exam document</button><span class="small">Set up each section’s marking tool on the Marking tools page first. Sections start on a new page.</span></div>
+  <div class="paper" id="docPreview"></div>
+</div>
+
 <script>
 /* ============ model ============ */
 let uid = 1; const nid = () => uid++;
@@ -152,16 +163,16 @@ const ROUNDNAME = { 1: "whole marks", 0.5: "half marks", 0.25: "quarter marks", 
 
 const crit = (name, marks) => ({ id: nid(), name, marks, desc: ["", "", "", ""], lo: "", hi: "" });
 function group(label, count, points, tool) {
-  return { id: nid(), label, count, points, tool: tool || (points <= 1 ? "rw" : "anchors"), add4plus: false, stripWords: false, toolMarks: null, lookfors: ["", ""], criteria: [crit(label || "Response", points)], anchors: ["", "", "", ""], selCorrect: 4, selRule: "cancel", selManual: ["", "", "", ""] };
+  return { id: nid(), label, count, points, tool: tool || "", add4plus: false, stripWords: false, toolMarks: null, lookfors: ["", ""], criteria: [crit(label || "Response", points)], anchors: ["", "", "", ""], selCorrect: 4, selRule: "cancel", selManual: ["", "", "", ""] };
 }
 const section = (name, title, groups, weight) => ({ id: nid(), name, title, groups, weight, keyMin: "" });
 function sample() {
-  const b = group("Extended response", 1, 10, "rubric");
+  const b = group("Extended response", 1, 10);
   b.criteria = [crit("Knowledge and Understanding", 2), crit("Thinking", 3), crit("Application", 3), crit("Communication", 2)];
   return { course: "", examWeight: 20, designMin: 60, rounding: 0.25, mode: "points", unit: "final", showExample: false,
-    sections: [section("A", "Knowledge", [group("Multiple choice", 10, 1, "rw"), group("Short answer", 2, 4, "anchors")], 8),
+    sections: [section("A", "Knowledge", [group("Multiple choice", 10, 1), group("Short answer", 2, 4)], 8),
                section("B", "Application", [b], 6),
-               section("C", "Reflection", [(() => { const g = group("Reflection task", 3, 4, "holistic"); g.lookfors = ["Names a specific skill or concept from the course", "Explains why, with a concrete example", "Gives a next step you could actually take", "Uses course terms correctly"]; return g })()], 6)] };
+               section("C", "Reflection", [(() => { const g = group("Reflection task", 3, 4); g.lookfors = ["Names a specific skill or concept from the course", "Explains why, with a concrete example", "Gives a next step you could actually take", "Uses course terms correctly"]; return g })()], 6)] };
 }
 let S = sample();
 
@@ -304,6 +315,16 @@ function refresh1() {
   renderChecks();
 }
 
+/* ============ copy styles: the department's exam template (Arial, navy titles, slate rules), with a light header fill ============ */
+const DS = {
+  TH: "background:#dfe7f2;color:#1a365d;font-weight:bold;text-align:left;text-transform:none;padding:5pt;border:0.75pt solid #cbd5e1;font-family:Arial;font-size:8pt;vertical-align:top",
+  TD: "border:0.75pt solid #cbd5e1;padding:5pt;vertical-align:top;font-family:Arial;font-size:8pt;color:#000000",
+  T0: `<table style="border-collapse:collapse;width:6.5in;max-width:100%">`,
+  para: (t, font, ps = "margin:0 0 10pt") => `<p style="${ps};${font}"><span style="${font}">${t}</span></p>`,
+  title: t => DS.para(t, "font-family:Arial;font-weight:bold;font-size:11pt;color:#1a365d", "margin:10pt 0 6pt"),
+  note: t => DS.para(t, "font-family:Arial;font-style:italic;font-size:8pt;color:#64748b", "margin:4pt 0 0")
+};
+
 /* ============ page 2 ============ */
 const allGroups = () => { const o = []; S.sections.forEach((s, i) => s.groups.forEach((g, j) => o.push({ s, g, i, j }))); return o };
 const usesCriteria = g => g.tool === "rubric" || g.tool === "likert" || g.tool === "single";
@@ -343,12 +364,11 @@ const selMarkTxt = (m, N) => Array.isArray(m) ? `<b>${fmt(m[0])}–${fmt(m[1])}<
 const BANDTXT = { 1: "50–59%", 2: "60–69%", 3: "70–79%", 4: "80–100%" };
 const selPick = (x, C) => x.hi !== x.lo ? `${x.lo}–${x.hi} correct` : x.hi === C ? `All ${C} correct` : `${x.hi} correct`;
 function selTableHTML(g, copy) {
-  const t = selTable(g), TH = copy ? ` style="background:#dfe7f2;color:#1b2a47;font-weight:bold;text-align:left;padding:6px 8px;border:1px solid #c8ced8;font-family:Arial;font-size:10pt"` : "",
-    TD = copy ? ` style="padding:6px 8px;border:1px solid #c8ced8;font-family:Arial;font-size:10pt"` : "";
+  const t = selTable(g), TH = copy ? ` style="${DS.TH}"` : "", TD = copy ? ` style="${DS.TD}"` : "";
   if (t.manual) return `<table${copy ? ` style="border-collapse:collapse;width:6.5in"` : ""}><tr><th${TH}>Right and wrong picks</th><th${TH}>Level</th><th${TH}>Mark</th></tr>
     ${t.rows.map(x => `<tr><td${TD}>${esc(x.txt)}</td><td${TD}>Level ${x.L} · ${QUAL[x.L].toLowerCase()} (${BANDTXT[x.L]})</td><td${TD}>${selMarkTxt(x.m, toolMarks(g))}</td></tr>`).join("")}
     <tr><td${TD}>Left blank</td><td${TD}>No evidence</td><td${TD}><b>0</b></td></tr></table>`;
-  return `<table${copy ? ` style="border-collapse:collapse;width:100%"` : ""}><tr><th${TH}>Correct picks${selCancel(g) ? `<br><span style="font-weight:normal;font-size:9pt;text-transform:none">after taking away wrong picks</span>` : ""}</th><th${TH}>Level</th><th${TH}>Mark</th></tr>
+  return `<table${copy ? ` style="border-collapse:collapse;width:6.5in"` : ""}><tr><th${TH}>Correct picks${selCancel(g) ? `<br><span style="font-weight:normal;text-transform:none">after taking away wrong picks</span>` : ""}</th><th${TH}>Level</th><th${TH}>Mark</th></tr>
     ${t.rows.map(x => `<tr><td${TD}>${selPick(x, t.C)}</td><td${TD}>Level ${x.L} · ${QUAL[x.L].toLowerCase()} (${["50–59%", "60–69%", "70–79%", "80–100%"][x.L - 1]})</td><td${TD}><b>${fmt(x.m)}</b> (${pct(x.m / toolMarks(g), 0)})</td></tr>`).join("")}
     <tr><td${TD}>${selCancel(g) ? "None, or as many wrong as right" : "None"}</td><td${TD}>No evidence</td><td${TD}><b>0</b></td></tr></table>`;
 }
@@ -431,16 +451,18 @@ function renderTools() {
         <div class="tools noprint"><button class="link" data-act="addLook" data-i="${i}" data-j="${j}">+ Add a look-for</button>${plusBox(g, base)}</div>
         <p style="margin:14px 0 2px"><b>The scale</b> <span class="small">Choose the one level that best fits the whole response; the mark comes from the table.</span></p>
         <div id="hs${g.id}"></div>`;
-    } else edit = `<p class="small">Each question is right or wrong. Pair closed questions like these with questions that let every level show up.</p>`;
+    } else if (!g.tool) edit = `<p class="small">Choose how these questions are marked. Nothing is set up until you pick a tool.</p>`;
+    else edit = `<p class="small">Each question is right or wrong. Pair closed questions like these with questions that let every level show up.</p>`;
     const short = g.tool === "anchors" || g.tool === "holistic" || g.tool === "select";
     return `<div id="tool${g.id}"><hr class="rule">
       <h2>Section ${esc(s.name)} · ${esc(g.label || "Questions")} <span class="small" style="font-weight:400">${fmt(num(g.count))} × ${marksWord(num(g.points))} on the Weighting page</span></h2>
       <p class="noprint">Mark with <select class="fill" style="max-width:360px;width:auto" data-k="${base}.tool" data-struct="1">
+        <option value="" ${g.tool ? "" : "selected"}>Select a marking tool…</option>
         ${Object.entries(TOOLNAME).map(([v, t]) => `<option value="${v}" ${g.tool === v ? "selected" : ""}>${t}</option>`).join("")}</select></p>
-      <div class="noprint">${marksBox(g, i, j)}</div>
+      ${g.tool ? `<div class="noprint">${marksBox(g, i, j)}</div>` : ""}
       <div class="scroll">${edit}</div>
       <div id="tf${g.id}"></div>
-      ${g.tool !== "rw" ? `<div class="tools noprint"><button class="btn" data-copy="tool" data-g="${g.id}">${COPYNAME[g.tool]}</button><span class="small">${g.tool === "select" ? "For markers. Put the student line below on the exam instead." : "Paste it into the exam so students can see how they’ll be marked."}</span></div>` : ""}
+      ${g.tool && g.tool !== "rw" ? `<div class="tools noprint"><button class="btn" data-copy="tool" data-g="${g.id}">${COPYNAME[g.tool]}</button><span class="small">${g.tool === "select" ? "For markers. Put the student line below on the exam instead." : "Paste it into the exam so students can see how they’ll be marked."}</span></div>` : ""}
       ${short ? `<p style="margin:18px 0 4px"><b>${{ anchors: "Short version", holistic: "Student checklist", select: "Student line" }[g.tool]}</b> <span class="small">${{ anchors: "A one-line strip for when space on the exam is tight.", holistic: "Place it under the question so students can check their work before handing in.", select: "Place it under the question so students know how it’s marked." }[g.tool]}</span></p>
         <div id="sv${g.id}"></div>
         <div class="tools noprint"><button class="btn" data-copy="strip" data-g="${g.id}">${{ anchors: "Copy short version", holistic: "Copy checklist", select: "Copy student line" }[g.tool]}</button>
@@ -451,6 +473,7 @@ function renderTools() {
 function toolSummary(g) {
   const r = num(S.rounding), N = toolMarks(g), flags = [];
   if (Math.abs(N - num(g.points)) > 1e-9) flags.push(`This tool is out of ${marksWord(N)}, but the question is worth ${marksWord(num(g.points))} on the Weighting page.`);
+  if (!g.tool) return { N, flags: [], none: true };
   if (g.tool === "rw") return { N, flags, rw: true };
   if (g.tool === "select") {
     const t = selTable(g);
@@ -467,14 +490,16 @@ function toolSummary(g) {
 }
 function holisticTable(g, copy) {
   const sc = scaleSteps(toolMarks(g), num(S.rounding), g.add4plus).steps;
-  const TH = copy ? ` style="background:#dfe7f2;color:#1b2a47;font-weight:bold;text-align:center;padding:6px;border:1px solid #c8ced8;font-family:Arial;font-size:10pt"` : ` style="text-align:center"`;
-  const TD = copy ? ` style="text-align:center;padding:6px;border:1px solid #c8ced8;font-family:Arial;font-size:10pt"` : ` style="text-align:center"`;
-  return `<table style="border-collapse:collapse;width:100%"><tr>${sc.map(st => `<th${TH}>${st[1]}<br><span style="font-weight:normal;font-size:9pt;text-transform:none">${st[2]}</span></th>`).join("")}</tr>
+  const cw = copy ? `width:${(6.5 / sc.length - 0.14).toFixed(2)}in;` : "";
+  const TH = copy ? ` style="${DS.TH};text-align:center;${cw}"` : ` style="text-align:center"`;
+  const TD = copy ? ` style="${DS.TD};text-align:center;${cw}"` : ` style="text-align:center"`;
+  return `<table style="border-collapse:collapse;width:${copy ? "6.5in" : "100%"}"><tr>${sc.map(st => `<th${TH}>${st[1]}<br><span style="font-weight:normal;text-transform:none">${st[2]}</span></th>`).join("")}</tr>
     <tr>${sc.map(st => `<td${TD}>${stepTxt(st[3])}</td>`).join("")}</tr></table>`;
 }
 function refresh2() {
   const r = num(S.rounding);
   allGroups().forEach(({ g, i, j }) => {
+    if (!g.tool) { const f = document.getElementById("tf" + g.id); if (f) f.innerHTML = ""; return }
     const ts = toolSummary(g), N = toolMarks(g);
     const tm = document.getElementById("tm" + g.id); if (tm) tm.textContent = marksWord(N);
     if (g.tool === "rubric") g.criteria.forEach((c, k) => { const lm = ts.lms[k]; [4, 3, 2, 1].forEach(L => { const e = document.getElementById(`lm${c.id}_${L}`); if (e) e.textContent = L === 4 ? l4Txt(lm) + " Marks:" : MarksWord(lm[L]) + ":" }) });
@@ -497,6 +522,7 @@ function refresh2() {
   allGroups().forEach(({ s, g }) => {
     const ts = toolSummary(g), N = toolMarks(g), name = `<b>Section ${esc(s.name)} · ${esc(g.label || "Questions")}</b> (${fmt(num(g.count))} × ${marksWord(num(g.points))})`;
     const mism = Math.abs(N - num(g.points)) > 1e-9 ? ` <span class="warn">The tool is out of ${marksWord(N)}, not ${marksWord(num(g.points))}.</span>` : "";
+    if (ts.none) { parts.push(`<p>${name}: <span class="muted">no marking tool chosen yet.</span></p>`); return }
     if (ts.rw) { parts.push(`<p>${name}: marked right or wrong, ${marksWord(N)} for each correct answer.${mism}</p>`); return }
     if (ts.sel) { const t = ts.sel, warn = ts.flags.filter(x => !/^This tool is out of/.test(x));
       parts.push(`<p>${name}: marked with select-all scoring. ${t.manual ? `The teacher set the right and wrong picks for each level. ${t.rows.map(x => `Level ${x.L}${x.txt.trim() ? ` (${esc(x.txt.trim())})` : ""} earns ${Array.isArray(x.m) ? fmt(x.m[0]) + "–" + fmt(x.m[1]) : fmt(x.m)}`).join(", ")}; a blank response earns 0.` : `There are ${t.C} correct answers, and each wrong pick cancels a correct one. ${t.rows.map(x => `${selPick(x, t.C)} earns ${fmt(x.m)} (Level ${x.L})`).join(", ")}; none earns 0.`} ${warn.length ? `<span class="warn">To check: ${warn.join(" ")}</span>` : "Every level lands inside its achievement chart range."}${mism}</p>`); return }
@@ -519,41 +545,37 @@ function refresh2() {
 /* short versions: anchors = one-line strip; holistic = student checklist + mark line */
 function stripHTML(g) {
   const N = toolMarks(g), r = num(S.rounding), words = { 4: "thorough", 3: "considerable", 2: "some", 1: "limited" };
-  const cell = "border:1px solid #9aa0a6;padding:3px 7px;font-family:Arial;font-size:9pt;line-height:1.3;vertical-align:middle";
+  const cell = "border:0.75pt solid #cbd5e1;padding:3pt 6pt;font-family:Arial;font-size:9pt;line-height:1.3;vertical-align:middle;color:#000000";
   if (g.tool === "select")
-    return `<table style="border-collapse:collapse;width:auto;margin:0"><tr><td style="${cell}">Select every answer that applies. ${selCancel(g) ? "Each correct choice earns marks; each wrong choice cancels one correct choice." : "Your mark depends on how many correct and incorrect choices you make."}</td><td style="${cell};font-weight:bold;white-space:nowrap">Mark: ______ / ${fmt(N)}</td></tr></table>`;
+    return `<table style="border-collapse:collapse;width:6.5in;margin:0"><tr><td style="${cell};width:5in">Select every answer that applies. ${selCancel(g) ? "Each correct choice earns marks; each wrong choice cancels one correct choice." : "Your mark depends on how many correct and incorrect choices you make."}</td><td style="${cell};font-weight:bold;white-space:nowrap;width:1.2in">Mark: ______ / ${fmt(N)}</td></tr></table>`;
   if (g.tool === "holistic") {
     const items = g.lookfors.filter(x => x.trim());
-    return `<table style="border-collapse:collapse;width:auto;margin:0"><tr><td style="${cell};font-weight:bold;background:#dfe7f2">Before you hand in, check that you completed:</td><td style="${cell};font-weight:bold;white-space:nowrap">Mark: ______ / ${fmt(N)}</td></tr>
+    return `<table style="border-collapse:collapse;width:6.5in;margin:0"><tr><td style="${cell};font-weight:bold;background:#dfe7f2;color:#1a365d;width:5in">Before you hand in, check that you completed:</td><td style="${cell};font-weight:bold;white-space:nowrap;width:1.2in">Mark: ______ / ${fmt(N)}</td></tr>
       ${(items.length ? items : ["(add look-fors above)"]).map(t => `<tr><td colspan="2" style="${cell}">☐ ${esc(t)}</td></tr>`).join("")}</table>`;
   }
-  return `<table style="border-collapse:collapse;width:auto;margin:0"><tr>
-    <td style="${cell};font-weight:bold;white-space:nowrap">Mark: ______ / ${fmt(N)}</td>
-    ${[4, 3, 2, 1].map(L => `<td style="${cell};white-space:nowrap"><b>L${L}</b> ${rangeTxt(bandRange(N, L, r))}${g.stripWords ? ` <span style="color:#5f6368">${words[L]}</span>` : ""}</td>`).join("")}
+  return `<table style="border-collapse:collapse;width:${g.stripWords ? "6.5in" : "5.4in"};margin:0"><tr>
+    <td style="${cell};font-weight:bold;white-space:nowrap;width:1.3in">Mark: ______ / ${fmt(N)}</td>
+    ${[4, 3, 2, 1].map(L => `<td style="${cell};white-space:nowrap;width:${g.stripWords ? "1.15in" : "0.85in"}"><b>L${L}</b> ${rangeTxt(bandRange(N, L, r))}${g.stripWords ? ` <span style="color:#64748b">${words[L]}</span>` : ""}</td>`).join("")}
   </tr></table>`;
 }
 /* full versions, styled like the department's documents */
-function toolCopyHTML(gid) {
+function toolCopyHTML(gid, prefix = "") {
   const hit = allGroups().find(x => x.g.id === gid); if (!hit) return "";
   const { g } = hit, ts = toolSummary(g), r = num(S.rounding), N = toolMarks(g);
-  const TH = "background:#dfe7f2;color:#1b2a47;font-weight:bold;text-align:left;padding:8px;border:1px solid #c8ced8;font-family:Arial;font-size:10pt;vertical-align:top";
-  const TD = "border:1px solid #c8ced8;padding:8px;vertical-align:top;font-family:Arial;font-size:10pt";
-  const T0 = `<table style="border-collapse:collapse;width:6.5in;max-width:100%">`;
-  const title = t => `<p style="font-family:Arial;font-weight:bold;font-size:13pt;color:#203864;margin:0 0 6pt">${t}</p>`;
-  const note = t => `<p style="font-family:Arial;font-style:italic;font-size:9pt;margin:4pt 0 0">${t}</p>`;
+  const { TH, TD, T0, note } = DS, title = t => DS.title(prefix + t);
   if (g.tool === "rubric")
     return title(`Rubric: ${esc(g.label || "Response")} (${MarksWord(N)})`) + T0 +
-      `<tr><th style="${TH};width:1.3in">Criteria</th><th style="${TH};width:1.3in">Level 4 (80–100%)</th><th style="${TH};width:1.3in">Level 3 (70–79%)</th><th style="${TH};width:1.3in">Level 2 (60–69%)</th><th style="${TH};width:1.3in">Level 1 (50–59%)</th></tr>` +
+      `<tr><th style="${TH};width:1.16in">Criteria</th><th style="${TH};width:1.16in">Level 4 (80–100%)</th><th style="${TH};width:1.16in">Level 3 (70–79%)</th><th style="${TH};width:1.16in">Level 2 (60–69%)</th><th style="${TH};width:1.16in">Level 1 (50–59%)</th></tr>` +
       g.criteria.map((c, k) => { const lm = ts.lms[k], v = [l4Txt(lm) + " Marks", MarksWord(lm[3]), MarksWord(lm[2]), MarksWord(lm[1])];
         return `<tr><td style="${TD}"><b>${esc(c.name)}</b><br><i>(${MarksWord(num(c.marks))})</i></td>${v.map((x, q) => `<td style="${TD}"><b>${x}:</b> ${esc(c.desc[q])}</td>`).join("")}</tr>` }).join("") +
       `</table>` + note("A task left blank earns 0. Any attempt earns at least Level 1.");
   if (g.tool === "single")
     return title(`Single-point rubric: ${esc(g.label || "Response")} (${MarksWord(N)})`) +
       /* fixed widths that add to 6.5 in (a letter page inside 1 in margins) */
-      (() => { const Wd = ["1.35in", "1.45in", "2.25in", "1.45in"], cellW = (k) => `width:${Wd[k]};`, SUB = `<br><span style="font-weight:normal;text-transform:none">`;
+      (() => { const Wd = ["1.2in", "1.3in", "2.14in", "1.3in"], cellW = (k) => `width:${Wd[k]};`, SUB = `<br><span style="font-weight:normal;text-transform:none">`;
         return `<table style="border-collapse:collapse;width:6.5in;table-layout:fixed">` +
           `<tr><th style="${TH};${cellW(0)}">Criteria</th><th style="${TH};${cellW(1)}">Not yet${SUB}Level 1–2</span></th><th style="${TH};${cellW(2)}">Level 3: the standard${SUB}70–79%</span></th><th style="${TH};${cellW(3)}">Beyond${SUB}Level 4</span></th></tr>` +
-          g.criteria.map((c, k) => { const lm = ts.lms[k], G = "color:#5f6368;font-size:9pt";
+          g.criteria.map((c, k) => { const lm = ts.lms[k], G = "color:#64748b";
             return `<tr><td style="${TD};${cellW(0)}"><b>${esc(c.name)}</b><br><i>(${MarksWord(num(c.marks))})</i></td><td style="${TD};${cellW(1)}"><span style="${G}">Level 2: ${MarksWord(lm[2])}<br>Level 1: ${MarksWord(lm[1])}</span><br><br><br></td><td style="${TD};${cellW(2)}"><b>Level 3: ${MarksWord(lm[3])}</b><br>${esc(c.desc[1])}</td><td style="${TD};${cellW(3)}"><span style="${G}">Level 4: ${l4Txt(lm)} Marks</span><br><br><br></td></tr>` }).join("") + `</table>` })() +
       note("The marker circles a level for each criterion and writes feedback under Not yet or Beyond. A task left blank earns 0. Any attempt earns at least Level 1.");
   if (g.tool === "select")
@@ -562,12 +584,12 @@ function toolCopyHTML(gid) {
   if (g.tool === "likert") {
     const n = ts.scs[0] ? ts.scs[0].steps.length : 4, w = (100 / (2 * n)).toFixed(2), F = "font-family:Arial;", NB = "border:1px solid #ffffff;";
     /* every cell gets a white border so Docs and Word don't add their default black grid; the scale line is the only visible border */
-    const lineRow = `<tr>${Array.from({ length: 2 * n }, (_, h) => `<td style="${NB}width:${w}%;height:6pt;padding:0;font-size:1pt;line-height:1pt;${h === 0 || h === 2 * n - 1 ? "" : "border-bottom:1.5pt solid #5f6368;"}">&nbsp;</td>`).join("")}</tr>`;
+    const lineRow = `<tr>${Array.from({ length: 2 * n }, (_, h) => `<td style="${NB}width:${w}%;height:6pt;padding:0;font-size:1pt;line-height:1pt;${h === 0 || h === 2 * n - 1 ? "" : "border-bottom:1.5pt solid #64748b;"}">&nbsp;</td>`).join("")}</tr>`;
     return title(`Likert scale: ${esc(g.label || "Response")} (${MarksWord(N)})`) +
       g.criteria.map((c, k) => `<table style="border-collapse:collapse;border:none;width:100%;margin:0 0 10pt">
-        <tr><td colspan="${2 * n}" style="${NB}${F}font-size:11pt;font-weight:bold;padding:2pt 0 4pt">${esc(c.name)} <i style="font-weight:normal">(${MarksWord(num(c.marks))})</i></td></tr>
+        <tr><td colspan="${2 * n}" style="${NB}${F}font-size:9pt;font-weight:bold;padding:2pt 0 4pt;color:#000000">${esc(c.name)} <i style="font-weight:normal">(${MarksWord(num(c.marks))})</i></td></tr>
         ${lineRow}
-        <tr>${ts.scs[k].steps.map(st => `<td colspan="2" style="${NB}${F}text-align:center;vertical-align:top;padding:1pt 2pt;font-size:9pt;line-height:1.25;color:#3c4043"><span style="font-size:14pt;color:#202124">☐</span><br><b>${stepTxt(st[3])}</b><br>${st[1]}<br><span style="color:#5f6368">${st[2]}</span></td>`).join("")}</tr></table>`).join("") +
+        <tr>${ts.scs[k].steps.map(st => `<td colspan="2" style="${NB}${F}text-align:center;vertical-align:top;padding:1pt 2pt;font-size:8pt;line-height:1.25;color:#000000"><span style="font-size:12pt">☐</span><br><b>${stepTxt(st[3])}</b><br>${st[1]}<br><span style="color:#64748b">${st[2]}</span></td>`).join("")}</tr></table>`).join("") +
       note("Tick one box on each line. A task left blank earns 0.");
   }
   if (g.tool === "anchors")
@@ -578,18 +600,53 @@ function toolCopyHTML(gid) {
   if (g.tool === "holistic") {
     const items = g.lookfors.filter(x => x.trim());
     return title(`Holistic scale: ${esc(g.label || "Response")} (${MarksWord(N)})`) +
-      (items.length ? `<p style="font-family:Arial;font-size:10pt;margin:0 0 4pt"><b>Look for:</b> ${items.map(esc).join(" · ")}</p>` : "") +
+      (items.length ? `${DS.para(`<b>Look for:</b> ${items.map(esc).join(" · ")}`, "font-family:Arial;font-size:9pt", "margin:0 0 4pt")}` : "") +
       holisticTable(g, true) + note("Read the whole response, then choose the one level that best fits it. A task left blank earns 0.");
   }
   return "";
 }
 
-function sumCopyHTML() {
-  const tmp = document.createElement("div"); tmp.innerHTML = sumTableHTML();
+/* ============ page 3: the whole exam in the department's format ============ */
+function examDocHTML() {
+  const T = examTotal(), EW = num(S.examWeight), info = courseInfo(S.course), ok = info && !info.err;
+  const F = "font-family:Arial;font-size:12pt;color:#000000", P = (t, st = "") => DS.para(t, F + (/font-size/.test(st) ? ";" + st : ""), "margin:0 0 10pt;line-height:1.15;" + st), R = "margin-left:3.5in;";
+  const dept = ok && info.area ? esc(info.area.toUpperCase()) : "[DEPARTMENT]";
+  /* label / value columns in a borderless table (white borders stop Docs and Word adding a grid) */
+  const NB = "border:1px solid #ffffff;padding:3pt 4pt;vertical-align:top;font-family:Arial;font-size:12pt;color:#000000";
+  const cell = (t, w, first) => `<td style="${NB};width:${w}in${first ? ";padding-left:0" : ""}"><span style="font-family:Arial;font-size:12pt">${t}</span></td>`;
+  const rows = [["Course:", ok ? esc(info.code) + (info.title ? " – " + esc(info.title) : "") : "", "Task Description:", "Exam"],
+                ["Teacher:", "", "Duration:", `${ok && info.max ? info.max : "____"} minutes`],
+                ["Date:", "", "Total Marks:", `/${fmt(T)}`],
+                ["", "", "Percentage of Final Grade:", `${fmt(EW)}%`]];
+  const front = `<table style="border-collapse:collapse;border:none;width:6.5in;margin:0 0 12pt">${rows.map(r => `<tr>${cell(r[0], 0.8, true)}${cell(r[1], 2.2)}${cell(r[2], 2.15)}${cell(r[3], 1.0)}</tr>`).join("")}</table>`;
+  let h = P("<b>[School Name]</b>", "text-align:center") + P(`<b>${dept} DEPARTMENT</b>`, "text-align:center") + P("<b>SCHEDULED FINAL CULMINATING ACTIVITY</b>", "text-align:center") + P("&nbsp;") +
+    front +
+    P("<b>Student’s Name: _____________________________________________</b>", "font-size:14pt") +
+    P("________________________________________________________________") +
+    P("<b>GENERAL INSTRUCTIONS:</b>") + P("1.") + P("2.") + P("3.") + P("&nbsp;") + sumCopyHTML(true);
+  S.sections.forEach((s, si) => {
+    if (si === 0) h += `<br clear="all" style="page-break-before:always">`;   /* sections start on page 2 (Word's own page-break markup) */
+    h += DS.para(`<u>Part ${esc(s.name)}${String(s.title || "").trim() ? ": " + esc(s.title.trim()) : ""}</u>&nbsp;&nbsp;&nbsp;&nbsp;${MarksWord(secTotal(s))}`, "font-family:Arial;font-size:14pt;font-weight:bold;color:#1a365d", `margin:${si === 0 ? 0 : 22}pt 0 4pt`) +
+      DS.para("Instructions:", "font-family:Arial;font-size:10pt;font-weight:bold;color:#64748b", "margin:0 0 6pt") + P("&nbsp;");
+    s.groups.forEach(g => {
+      const n = num(g.count), pre = `Part ${s.name} `;
+      h += DS.para(`<b>${esc(g.label || "Questions")}:</b> ${fmt(n)} question${n === 1 ? "" : "s"} × ${marksWord(num(g.points))}${n === 1 ? "" : " each"}${g.tool === "rw" ? ", right or wrong" : ""}`, "font-family:Arial;font-size:10pt;color:#64748b", "margin:8pt 0 4pt");
+      if (g.tool === "anchors") h += DS.title(`${pre}Marking guide: ${esc(g.label || "Response")} (${MarksWord(toolMarks(g))})`) + stripHTML(g);
+      else if (g.tool === "select") h += stripHTML(g);
+      else if (g.tool === "holistic") h += toolCopyHTML(g.id, pre) + `<p style="margin:6pt 0 0;font-size:1pt"><span style="font-size:1pt">&nbsp;</span></p>` + stripHTML(g);
+      else if (g.tool !== "rw") h += toolCopyHTML(g.id, pre);
+    });
+  });
+  return h;
+}
+function renderDoc() { const el = document.getElementById("docPreview"); if (el && !document.getElementById("page3").classList.contains("hidden")) el.innerHTML = examDocHTML().replace(/<br clear="all" style="page-break-before:always">/g, `<div class="pgbrk">new page</div>`) }
+function sumCopyHTML(blank) {
+  const keep = S.showExample; if (blank) S.showExample = false;
+  const tmp = document.createElement("div"); tmp.innerHTML = sumTableHTML(); S.showExample = keep;
   tmp.querySelectorAll("p.small").forEach(p => p.remove());
-  tmp.querySelector("p").setAttribute("style", "font-family:Arial;font-weight:bold;font-size:12pt;margin:0 0 8pt");
+  const tp = tmp.querySelector("p"); tp.setAttribute("style", "font-family:Arial;font-weight:bold;font-size:12pt;margin:0 0 8pt"); tp.innerHTML = `<span style="font-family:Arial;font-weight:bold;font-size:12pt">${tp.innerHTML}</span>`;
   tmp.querySelectorAll("table").forEach(t => t.setAttribute("style", "border-collapse:collapse;width:100%"));
-  tmp.querySelectorAll("th,td").forEach(c => c.setAttribute("style", `border:1px solid #000;padding:7pt;text-align:left;vertical-align:top;font-family:Arial;font-size:11pt;${c.tagName === "TH" || c.classList.contains("b") ? "font-weight:bold;" : ""}${c.tagName === "TH" ? "text-transform:uppercase;background:#dfe7f2;color:#1b2a47;" : ""}`));
+  tmp.querySelectorAll("th,td").forEach(c => c.setAttribute("style", `border:1px solid #000;padding:7pt;text-align:left;vertical-align:top;font-family:Arial;font-size:12pt;${c.tagName === "TH" || c.classList.contains("b") ? "font-weight:bold;" : ""}${c.tagName === "TH" ? "text-transform:uppercase;background:#dfe7f2;color:#1b2a47;" : ""}`));
   tmp.querySelectorAll("th small").forEach(s => { s.setAttribute("style", "font-weight:normal;font-style:italic;font-size:8pt;text-transform:none"); s.before(document.createElement("br")) });
   return tmp.innerHTML;
 }
@@ -598,6 +655,7 @@ function sumCopyHTML() {
 function toolIssues() {
   const out = [], r = num(S.rounding);
   S.sections.forEach((s, i) => s.groups.forEach((g, j) => {
+    if (!g.tool) return;
     const where = `Section ${esc(s.name)} · ${esc(g.label || "Questions")}`, N = num(g.points), M = toolMarks(g), tot = secTotal(s);
     if (Math.abs(M - N) > 1e-9) out.push({ level: "bad", i, j, gid: g.id,
       text: `<b>${where}:</b> the marking tool is out of ${marksWord(M)}, but the question is worth ${marksWord(N)}${num(g.count) > 1 ? ` (× ${fmt(num(g.count))})` : ""}. Section ${esc(s.name)} would change from ${fmt(tot)} to ${fmt(tot - num(g.count) * N + num(g.count) * M)} marks.`,
@@ -708,7 +766,9 @@ document.addEventListener("input", e => {
   if (t.id === "course") { S.course = t.value.trim().toUpperCase(); applyCourse(); refresh1(); refresh2(false); return }
   const k = t.dataset.k; if (!k) return;
   let v = t.type === "checkbox" ? t.checked : t.value; if (k === "rounding") v = parseFloat(v);
+  const tm = k.match(/^sections\.(\d+)\.groups\.(\d+)\.tool$/), firstPick = tm && !S.sections[tm[1]].groups[tm[2]].tool;
   setPath(k, v);
+  if (firstPick) scaleCriteria(S.sections[tm[1]].groups[tm[2]]);   /* a tool picked for the first time starts out matching the question's marks */
   if (t.dataset.struct || k === "rounding") { renderTools(); refresh1(); refresh2(true); return }
   if (/^sections\.\d+\.name$/.test(k)) { renderSTable(); renderTools(); refresh2(true) }
   const m = k.match(/^sections\.(\d+)\.groups\.(\d+)\.(points|label|count)$/);
@@ -721,6 +781,7 @@ document.addEventListener("click", e => {
     document.querySelectorAll(".tab").forEach(x => x.classList.toggle("on", x === b));
     document.getElementById("page1").classList.toggle("hidden", b.dataset.tab !== "1");
     document.getElementById("page2").classList.toggle("hidden", b.dataset.tab !== "2");
+    document.getElementById("page3").classList.toggle("hidden", b.dataset.tab !== "3"); renderDoc();
     window.scrollTo(0, 0); return;
   }
   if (b.id === "addSection") { S.sections.push(section(String.fromCharCode(65 + S.sections.length), "", [group("", 1, 1)], 0)); renderAll(); return }
@@ -744,7 +805,7 @@ document.addEventListener("click", e => {
     return;
   }
   if (b.dataset.copy) {
-    const html = b.dataset.copy === "sum" ? sumCopyHTML() : b.dataset.copy === "tool" ? toolCopyHTML(+b.dataset.g)
+    const html = b.dataset.copy === "doc" ? examDocHTML() : b.dataset.copy === "sum" ? sumCopyHTML() : b.dataset.copy === "tool" ? toolCopyHTML(+b.dataset.g)
       : b.dataset.copy === "strip" ? stripHTML(allGroups().find(x => x.g.id === +b.dataset.g).g) : document.getElementById(b.dataset.copy).innerHTML;
     copyHTML(html, b); return;
   }
@@ -752,6 +813,9 @@ document.addEventListener("click", e => {
 });
 function copyHTML(html, btn) {
   const box = document.createElement("div"); box.innerHTML = html;
+  /* echo CSS widths and alignment as HTML attributes too, which Word and Docs read more reliably */
+  box.querySelectorAll("table,th,td").forEach(el => { const m = (el.getAttribute("style") || "").match(/(?:^|;)\s*width:\s*([\d.]+)in/); if (m) el.setAttribute("width", Math.round(parseFloat(m[1]) * 96)) });
+  box.querySelectorAll("p").forEach(el => { if (/text-align:\s*center/.test(el.getAttribute("style") || "")) el.setAttribute("align", "center") });
   box.style.cssText = "position:fixed;left:-9999px;top:0;width:6.5in;background:#fff;color:#000";   /* letter page width, so Word and Docs keep tables on the page */ document.body.appendChild(box);
   const range = document.createRange(); range.selectNodeContents(box); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(range);
   let ok = false; try { ok = document.execCommand("copy") } catch (e) {}

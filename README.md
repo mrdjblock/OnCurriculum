@@ -4,6 +4,7 @@ This folder is the whole website. Upload everything in it (index.html, the data 
 the docs folder and the originals folder) to a GitHub repository and turn on GitHub Pages.
 
 - index.html  – the page
+- exam-weighting-helper.html – Exam Weighting Helper: section weighting, marking tools and a formatted exam document
 - data/       – course, subject and expectation data (replaces the Claude database)
 - docs/       – one PDF per course
 - originals/  – the complete original curriculum documents
