@@ -100,7 +100,7 @@ td.c1 i { display: block; font-size: 12.5px }
   <h2>Questions</h2>
   <p class="small">One row per kind of question. “10 × 1 mark” is one row.</p>
   <div class="scroll"><table id="qTable"></table></div>
-  <div class="tools noprint"><button class="link" id="addSection">+ Add a section</button><button class="link" id="clearAll">Start blank</button></div>
+  <div class="tools noprint"><button class="link" id="addSection">+ Add a section</button><button class="link" id="clearAll">Start blank</button><span class="small muted">Your work saves automatically in this browser.</span></div>
 
   <h2>Sections</h2>
   <div class="scroll"><table id="sTable"></table></div>
@@ -175,7 +175,23 @@ function sample() {
                section("B", "Application", [b], 6),
                section("C", "Reflection", [(() => { const g = group("Reflection task", 3, 4); g.lookfors = ["Names a specific skill or concept from the course", "Explains why, with a concrete example", "Gives a next step you could actually take", "Uses course terms correctly"]; return g })()], 6)] };
 }
-let S = sample();
+/* work is saved quietly in this browser, so a refresh or a closed tab doesn't lose it */
+const SAVEKEY = "examWeightingHelper.v1";
+function loadSaved() {
+  try {
+    const o = JSON.parse(localStorage.getItem(SAVEKEY) || "null");
+    if (!o || !Array.isArray(o.sections) || !o.sections.length) return null;
+    const st = Object.assign(sample(), o, { sections: o.sections.map(s => Object.assign(section("", "", [], 0), s, {
+      groups: (Array.isArray(s.groups) ? s.groups : []).map(g => { const d = group("", 1, 1); return Object.assign(d, g, { criteria: (Array.isArray(g.criteria) && g.criteria.length ? g.criteria : d.criteria).map(c => Object.assign(crit("", 0), c)) }) }) })) });
+    let mx = 0; const walk = x => { if (x && typeof x === "object") { if (typeof x.id === "number") mx = Math.max(mx, x.id); Object.values(x).forEach(walk) } };
+    walk(st); uid = Math.max(uid, mx + 1);   /* new rows never reuse a saved id */
+    return st;
+  } catch (e) { return null }
+}
+let saveT = 0;
+const saveNow = () => { clearTimeout(saveT); try { localStorage.setItem(SAVEKEY, JSON.stringify(S)) } catch (e) {} };
+const saveSoon = () => { clearTimeout(saveT); saveT = setTimeout(saveNow, 300) };
+let S = loadSaved() || sample();
 
 /* ============ helpers ============ */
 const num = v => { const n = parseFloat(v); return isFinite(n) ? n : 0 };
@@ -919,6 +935,8 @@ function copyHTML(html, btn) {
   const old = btn.textContent; btn.textContent = ok ? "Copied ✓" : "Copy didn’t work: select and copy by hand"; setTimeout(() => btn.textContent = old, 1600);
 }
 renderAll();
+["input", "change", "click"].forEach(ev => document.addEventListener(ev, saveSoon));   /* after the handlers above, so S is already updated */
+window.addEventListener("pagehide", saveNow);
 </script>
 </body>
 </html>
