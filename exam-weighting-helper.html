@@ -1,0 +1,764 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Exam Weighting Helper</title>
+<style>
+:root { --ink: #202124; --muted: #5f6368; --rule: #000; --soft: #f1f3f4; --blue: #1a73e8; --warn: #b06000; --bad: #c5221f; --ok: #188038 }
+* { box-sizing: border-box }
+html, body { background: #f8f9fa }
+body { margin: 0; color: var(--ink); font: 14.5px/1.5 Arial, Helvetica, sans-serif }
+.bar { background: #fff; border-bottom: 1px solid #dadce0; position: sticky; top: 0; z-index: 5 }
+.bar .in { max-width: 860px; margin: 0 auto; padding: 10px 16px 0; display: flex; flex-wrap: wrap; align-items: flex-end; gap: 4px 24px }
+.bar .title { font-size: 18px; padding-bottom: 10px; flex: 1 1 auto }
+.tab { border: 0; background: none; font: inherit; color: var(--muted); padding: 8px 2px 10px; cursor: pointer; border-bottom: 3px solid transparent }
+.tab.on { color: var(--blue); border-bottom-color: var(--blue); font-weight: 700 }
+.page { max-width: 860px; margin: 22px auto 60px; background: #fff; box-shadow: 0 1px 3px rgba(60,64,67,.25); padding: 44px 56px 56px }
+@media (max-width: 720px) { .page { margin: 0; padding: 22px 16px 40px; box-shadow: none } }
+h1 { font-size: 24px; font-weight: 400; margin: 0 0 6px }
+h2 { font-size: 17px; margin: 30px 0 6px }
+p { margin: 0 0 10px }
+.muted { color: var(--muted) }
+.small { font-size: 12.5px; color: var(--muted) }
+.hidden { display: none }
+table { border-collapse: collapse; width: 100%; margin: 6px 0 4px }
+th, td { border: 1px solid var(--rule); padding: 7px 9px; text-align: left; vertical-align: top }
+th { font-weight: 700; text-transform: uppercase; font-size: 13px; background: #dfe7f2; color: #1b2a47 }
+th small { display: block; font-weight: 400; text-transform: none; font-style: italic; font-size: 11px; color: var(--muted) }
+td.b { font-weight: 700 }
+.scroll { overflow-x: auto }
+input[type=text], input[type=number], select, textarea {
+  font: inherit; color: inherit; border: 1px solid transparent; background: transparent; padding: 2px 4px; margin: -3px -5px; border-radius: 3px; width: calc(100% + 10px) }
+input[type=number] { max-width: 90px } input.n-s { max-width: 70px }
+input:hover, select:hover, textarea:hover { background: var(--soft) }
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--blue); background: #fff }
+input.fill, select.fill { background: #f8f9fa; border-color: #dadce0; margin: 0 }
+textarea { resize: vertical; min-height: 38px; font-size: 13px; line-height: 1.4; margin-top: 2px }
+.link { border: 0; background: none; color: var(--blue); font: inherit; cursor: pointer; padding: 0; font-size: 13px }
+.link:hover { text-decoration: underline }
+.x { border: 0; background: none; color: #9aa0a6; cursor: pointer; font-size: 13px; padding: 0 2px; line-height: 1 }
+.x:hover { color: var(--bad) }
+.btn { font: inherit; font-size: 13.5px; border: 1px solid #dadce0; background: #fff; color: var(--blue); padding: 6px 14px; border-radius: 4px; cursor: pointer; font-weight: 700 }
+.btn:hover { background: #f8fbff }
+.tools { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin: 8px 0 0 }
+.note { font-size: 13px; margin: 6px 0 }
+#course::placeholder { text-transform: none }
+.ok { color: var(--ok) } .warn { color: var(--warn) } .bad { color: var(--bad) }
+.choice label { display: block; margin: 3px 0; cursor: pointer }
+.report p { margin-bottom: 8px }
+.rule { border: 0; border-top: 1px solid #dadce0; margin: 34px 0 0 }
+.checks { border: 1px solid #f0c36d; background: #fef7e0; border-radius: 4px; padding: 10px 14px; margin: 14px 0 0 }
+.checks p { margin: 0 0 8px; font-size: 13.5px } .checks p:last-child { margin: 0 }
+.checks .link { margin-right: 14px }
+.badge { color: var(--warn); font-weight: 700 }
+.lk-item { border-top: 1px solid #e8eaed; padding: 12px 0 6px }
+.lk-item:first-child { border-top: 0 }
+.lk-head { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: flex-start }
+.lk-head textarea { flex: 1 1 320px; width: auto; margin: 0; font-weight: 700; font-size: 15px; min-height: 0 }
+.lk-steps { display: flex; justify-content: space-between; position: relative; margin: 12px 4px 4px }
+.lk-steps::before { content: ""; position: absolute; left: 36px; right: 36px; top: 12px; height: 2px; background: #3c4043 }
+.lk-step { display: flex; flex-direction: column; align-items: center; position: relative; z-index: 1; min-width: 72px; text-align: center }
+.lk-box { background: #fff; font-size: 22px; line-height: 24px; padding: 0 5px }
+.lk-mark { font-weight: 700; font-size: 13.5px; margin-top: 2px }
+.lk-lab { font-size: 12px; color: var(--muted); line-height: 1.25 }
+.pctref { color: #188038; font-size: 12px; white-space: nowrap }
+.lm { font-weight: 700; white-space: nowrap; display: block }
+td.c1 i { display: block; font-size: 12.5px }
+@media print { .bar, .noprint, .tools { display: none !important } .page { box-shadow: none; margin: 0; padding: 0 }
+  body.printing .page * { visibility: hidden } body.printing .printme, body.printing .printme * { visibility: visible } body.printing .printme { position: absolute; left: 0; top: 0; width: 100% } }
+</style>
+</head>
+<body>
+<div class="bar"><div class="in">
+  <div class="title">Exam Weighting Helper</div>
+  <button class="tab on" data-tab="1">Weighting</button>
+  <button class="tab" data-tab="2" id="tab2">Marking tools (optional)</button>
+</div></div>
+
+<!-- ============ PAGE 1 ============ -->
+<div class="page" id="page1">
+  <h1>Exam weighting</h1>
+  <p class="muted">Fill in the white cells. Everything else works itself out.</p>
+
+  <h2>The exam</h2>
+  <table style="max-width:660px">
+    <tr><td style="width:55%">Course code<div class="small">Fills in the weight and design length from the DSBN exam guide.</div></td><td><input type="text" class="fill" id="course" maxlength="12" placeholder="e.g. SNC1W" style="max-width:140px;text-transform:uppercase" autocomplete="off"><div class="small" id="courseNote"></div></td></tr>
+    <tr><td style="width:55%">Weight (% of the final mark)<div class="small">Final evaluation: 20% (Grades 9–10) · 25% (Grades 11–12). Exam-and-task courses: about 10% on the exam.</div></td><td><input type="number" class="fill" min="0" max="100" data-k="examWeight" id="examWeight"></td></tr>
+    <tr><td>Design length (minutes)</td><td><input type="number" class="fill" min="10" step="5" data-k="designMin" id="designMin"></td></tr>
+    <tr><td>Round marks to</td><td><select class="fill" data-k="rounding" id="rounding" style="max-width:180px">
+      <option value="1">whole marks</option><option value="0.5">half marks</option><option value="0.25">quarter marks</option><option value="0.1">tenths</option></select></td></tr>
+    <tr><td>How sections are weighted</td><td class="choice">
+      <label><input type="radio" name="mode" value="points"> By marks: every mark is worth the same</label>
+      <label><input type="radio" name="mode" value="custom"> I choose each section’s weight</label></td></tr>
+  </table>
+
+  <h2>Questions</h2>
+  <p class="small">One row per kind of question. “10 × 1 mark” is one row.</p>
+  <div class="scroll"><table id="qTable"></table></div>
+  <div class="tools noprint"><button class="link" id="addSection">+ Add a section</button><button class="link" id="clearAll">Start blank</button></div>
+
+  <h2>Sections</h2>
+  <div class="scroll"><table id="sTable"></table></div>
+  <div id="wCheck" class="note"></div>
+  <div class="tools noprint" id="suggestWrap"><button class="link" data-act="suggest">Suggest marks so every mark is worth the same</button></div>
+  <div id="suggestOut"></div>
+  <div id="toolChecks"></div>
+
+  <div id="sumCard">
+    <h2>Summary of marks</h2>
+    <p class="small noprint" id="sumHint"></p>
+    <div class="scroll" id="sumOut"></div>
+    <div class="tools noprint">
+      <button class="btn" data-copy="sum">Copy chart</button>
+      <button class="link" data-print="sumCard">Print</button>
+      <label class="small"><input type="checkbox" id="showExample"> Show a filled-in example</label>
+    </div>
+  </div>
+
+  <h2>What each question is worth</h2>
+  <div class="scroll" id="brkOut"></div>
+
+  <div id="rep1Card">
+    <h2>Weighting report</h2>
+    <div class="report" id="rep1"></div>
+    <div class="tools noprint"><button class="btn" data-copy="rep1">Copy report</button><button class="link" data-print="rep1Card">Print</button></div>
+  </div>
+</div>
+
+<!-- ============ PAGE 2 ============ -->
+<div class="page hidden" id="page2">
+  <h1>Marking tools</h1>
+  <p class="muted">Choose how each kind of question is marked. Every tool keeps each level inside its achievement chart range: Level 1 is 50–59%, Level 2 is 60–69%, Level 3 is 70–79% (the provincial standard) and Level 4 is 80–100%. Limited evidence is Level 1; only a blank response earns 0.</p>
+  <p class="small">Marks are rounded to <b id="roundName"></b>. Change this on the Weighting page.</p>
+  <div id="tools"></div>
+  <div id="rep2Card">
+    <hr class="rule">
+    <h2>Marking tools report</h2>
+    <div class="report" id="rep2"></div>
+    <div class="tools noprint"><button class="btn" data-copy="rep2">Copy report</button><button class="link" data-print="rep2Card">Print</button></div>
+  </div>
+</div>
+
+<script>
+/* ============ model ============ */
+let uid = 1; const nid = () => uid++;
+const BANDS = { 4: [0.80, 1.0001], 3: [0.70, 0.80], 2: [0.60, 0.70], 1: [0.50, 0.60] };
+const TARGET = { 3: 0.75, 2: 0.65, 1: 0.55 };
+const QUAL = { 1: "Limited", 2: "Some", 3: "Considerable", 4: "High degree" };
+const PLUS = [["4+", 4, 0.97], ["4", 4, 0.90], ["4−", 4, 0.83], ["3+", 3, 0.78], ["3", 3, 0.75], ["3−", 3, 0.71],
+              ["2+", 2, 0.68], ["2", 2, 0.65], ["2−", 2, 0.61], ["1+", 1, 0.58], ["1", 1, 0.55], ["1−", 1, 0.51]];
+const ROUNDNAME = { 1: "whole marks", 0.5: "half marks", 0.25: "quarter marks", 0.1: "tenths" };
+
+const crit = (name, marks) => ({ id: nid(), name, marks, desc: ["", "", "", ""], lo: "", hi: "" });
+function group(label, count, points, tool) {
+  return { id: nid(), label, count, points, tool: tool || (points <= 1 ? "rw" : "anchors"), add4plus: false, stripWords: false, toolMarks: null, lookfors: ["", ""], criteria: [crit(label || "Response", points)], anchors: ["", "", "", ""], selCorrect: 4, selRule: "cancel", selManual: ["", "", "", ""] };
+}
+const section = (name, title, groups, weight) => ({ id: nid(), name, title, groups, weight, keyMin: "" });
+function sample() {
+  const b = group("Extended response", 1, 10, "rubric");
+  b.criteria = [crit("Knowledge and Understanding", 2), crit("Thinking", 3), crit("Application", 3), crit("Communication", 2)];
+  return { course: "", examWeight: 20, designMin: 60, rounding: 0.25, mode: "points", unit: "final", showExample: false,
+    sections: [section("A", "Knowledge", [group("Multiple choice", 10, 1, "rw"), group("Short answer", 2, 4, "anchors")], 8),
+               section("B", "Application", [b], 6),
+               section("C", "Reflection", [(() => { const g = group("Reflection task", 3, 4, "holistic"); g.lookfors = ["Names a specific skill or concept from the course", "Explains why, with a concrete example", "Gives a next step you could actually take", "Uses course terms correctly"]; return g })()], 6)] };
+}
+let S = sample();
+
+/* ============ helpers ============ */
+const num = v => { const n = parseFloat(v); return isFinite(n) ? n : 0 };
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const r2 = x => Math.round(x * 100) / 100;
+const fmt = (x, d = 2) => !isFinite(x) ? "–" : String(Math.round(x * 10 ** d) / 10 ** d);
+const pct = (x, d = 1) => isFinite(x) ? fmt(x * 100, d) + "%" : "–";
+const roundTo = (x, r) => Math.round(x / r + 1e-9) * r;
+const ceilTo = (x, r) => Math.ceil(x / r - 1e-9) * r;
+const marksWord = x => fmt(x) + (Math.abs(x - 1) < 1e-9 ? " mark" : " marks");
+const MarksWord = x => fmt(x) + (Math.abs(x - 1) < 1e-9 ? " Mark" : " Marks");
+const secTotal = s => s.groups.reduce((a, g) => a + num(g.count) * num(g.points), 0);
+const examTotal = () => S.sections.reduce((a, s) => a + secTotal(s), 0);
+function weights() {   /* % of the final mark */
+  const W = num(S.examWeight), T = examTotal();
+  return S.sections.map(s => S.mode === "points" ? (T ? W * secTotal(s) / T : 0) : (S.unit === "exam" ? num(s.weight) * W / 100 : num(s.weight)));
+}
+function inBand(v, m, L) { const [a, b] = BANDS[L]; return v / m >= a - 1e-9 && v / m < b - 1e-9 }
+function nearestIn(t, m, L, r) {
+  const [a, b] = BANDS[L]; let best = null;
+  for (let k = Math.ceil(a * m / r - 1e-9); k * r < b * m - 1e-9; k++) { const c = k * r; if (best === null || Math.abs(c - t) < Math.abs(best - t)) best = c }
+  return best;
+}
+function levelMarks(m, r) {
+  const out = { flags: [] };
+  if (m <= 0) { out[4] = [0, 0]; out[3] = out[2] = out[1] = 0; return out }
+  out[4] = [r2(Math.min(m, ceilTo(0.8 * m, r))), m];
+  for (const L of [3, 2, 1]) {
+    const t = TARGET[L] * m; let v = roundTo(t, r);
+    if (!inBand(v, m, L)) { const b = nearestIn(t, m, L, r); if (b !== null) v = b; else out.flags.push(L) }
+    out[L] = r2(v);
+  }
+  return out;
+}
+const plusMarks = (m, r) => PLUS.map(([lab, L, p]) => { let v = roundTo(p * m, r); if (!inBand(v, m, L)) { const b = nearestIn(p * m, m, L, r); if (b !== null) v = b } return [lab, L, r2(v), inBand(v, m, L)] });
+function bandRange(N, L, r) { const [a, b] = BANDS[L]; const lo = ceilTo(a * N, r), hi = L === 4 ? N : ceilTo(b * N, r) - r; return hi < lo ? null : [r2(lo), r2(hi)] }
+const rangeTxt = rg => !rg ? "–" : rg[0] === rg[1] ? fmt(rg[0]) : fmt(rg[0]) + "–" + fmt(rg[1]);
+const anchor4 = (m, r) => { let v = roundTo(0.9 * m, r); if (v / m < 0.8 - 1e-9) v = ceilTo(0.8 * m, r); return r2(Math.min(m, v)) };
+const l4Txt = lm => lm[4][0] === lm[4][1] ? fmt(lm[4][1]) : fmt(lm[4][0]) + "–" + fmt(lm[4][1]);
+
+/* ============ page 1: inputs ============ */
+function renderQTable() {
+  const rows = [`<tr><th style="width:10%">Section</th><th style="width:18%">Name</th><th>Kind of question</th><th style="width:11%">How many</th><th style="width:11%">Marks each</th><th style="width:9%">Marks</th><th class="noprint" style="width:30px"></th></tr>`];
+  S.sections.forEach((s, i) => {
+    const n = s.groups.length + 1;
+    s.groups.forEach((g, j) => {
+      rows.push(`<tr>${j === 0 ? `<td rowspan="${n}" class="b"><input type="text" class="n-s" data-k="sections.${i}.name" value="${esc(s.name)}">${S.sections.length > 1 ? `<div class="noprint" style="margin-top:8px"><button class="x" title="Remove section" data-act="delSection" data-i="${i}">× remove</button></div>` : ""}</td>
+        <td rowspan="${n}"><input type="text" placeholder="e.g. Knowledge" data-k="sections.${i}.title" value="${esc(s.title)}"></td>` : ""}
+        <td><input type="text" placeholder="e.g. Multiple choice" data-k="sections.${i}.groups.${j}.label" value="${esc(g.label)}"></td>
+        <td><input type="number" min="0" step="1" data-k="sections.${i}.groups.${j}.count" value="${esc(g.count)}"></td>
+        <td><input type="number" min="0" step="0.5" data-k="sections.${i}.groups.${j}.points" value="${esc(g.points)}"></td>
+        <td id="gt${g.id}"></td>
+        <td class="noprint" style="text-align:center">${s.groups.length > 1 ? `<button class="x" title="Remove this row" data-act="delGroup" data-i="${i}" data-j="${j}">×</button>` : ""}</td></tr>`);
+    });
+    rows.push(`<tr class="noprint"><td colspan="5" style="padding:4px 9px"><button class="link" data-act="addGroup" data-i="${i}">+ Add a row to Section ${esc(s.name)}</button></td></tr>`);
+  });
+  document.getElementById("qTable").innerHTML = rows.join("");
+}
+function renderSTable() {
+  const custom = S.mode === "custom";
+  const head = `<tr><th style="width:12%">Section</th><th style="width:12%">Marks</th>
+    <th style="width:24%">Weight<small>${custom ? `<label><input type="radio" name="unit" value="final" ${S.unit === "final" ? "checked" : ""}> % of final mark</label> <label><input type="radio" name="unit" value="exam" ${S.unit === "exam" ? "checked" : ""}> % of exam</label>` : "% of the final mark"}</small></th>
+    <th>% of the exam</th><th>One mark is worth<small>% of the final mark</small></th><th style="width:17%">Your time<small>to write the answers (optional)</small></th></tr>`;
+  const rows = S.sections.map((s, i) => `<tr><td class="b">${esc(s.name)}</td><td id="sm${s.id}"></td>
+    <td>${custom ? `<input type="number" class="fill" min="0" step="0.5" data-k="sections.${i}.weight" value="${esc(s.weight)}" style="max-width:80px"> %` : `<span id="sw${s.id}"></span>`}</td>
+    <td id="se${s.id}"></td><td id="sv${s.id}"></td>
+    <td><input type="number" min="0" step="1" placeholder="minutes" data-k="sections.${i}.keyMin" value="${esc(s.keyMin)}"></td></tr>`).join("");
+  document.getElementById("sTable").innerHTML = head + rows + `<tr><td class="b">TOTAL</td><td class="b" id="smT"></td><td class="b" id="swT"></td><td class="b">100%</td><td></td><td id="stT"></td></tr>`;
+  document.querySelectorAll("input[name=mode]").forEach(r => r.checked = r.value === S.mode);
+  document.getElementById("suggestWrap").style.display = custom ? "" : "none";
+  if (!custom) document.getElementById("suggestOut").innerHTML = "";
+}
+
+/* ============ page 1: outputs ============ */
+function exampleMarks() { const f = [0.83, 0.6, 0.75, 0.7, 0.8]; return S.sections.map((s, i) => roundTo(secTotal(s) * f[i % 5], num(S.rounding))) }
+const secLabel = s => esc(s.name) + (String(s.title || "").trim() ? ": " + esc(s.title.trim()) : "");
+function sumTableHTML() {
+  const W = weights(), T = examTotal(), tw = W.reduce((a, b) => a + b, 0), ex = S.showExample ? exampleMarks() : null;
+  const title = `<p style="font-weight:700;margin:0 0 8px">SUMMARY OF MARKS:</p>`;
+  const exTot = ex ? ex.reduce((a, b) => a + b, 0) : 0;
+  /* % of the exam for each section (adds to 100) */
+  const E = S.sections.map((s, i) => tw ? W[i] / tw * 100 : (T ? secTotal(s) / T * 100 : 0));
+  if (S.mode === "points") {
+    const rows = S.sections.map((s, i) => `<tr><td class="b">${secLabel(s)}</td><td>${ex ? fmt(ex[i]) : ""}</td><td>${marksWord(secTotal(s))}</td><td>${fmt(E[i])}%</td></tr>`).join("");
+    return title + `<table><tr><th>Section</th><th>Marks received</th><th>Total marks</th><th>% of exam</th></tr>${rows}
+      <tr><td class="b">TOTAL</td><td>${ex ? fmt(exTot) : ""}</td><td>${marksWord(T)}</td><td>100%</td></tr></table>` +
+      (ex ? `<p class="small">Example: ${fmt(exTot)} / ${fmt(T)} = ${pct(exTot / T)} on the exam, so ${fmt(exTot / T * tw, 2)} of the ${fmt(tw)} points toward the final mark.</p>` : "");
+  }
+  let wsum = 0;
+  const rows = S.sections.map((s, i) => {
+    const tot = secTotal(s); let rec = "", ws = "";
+    if (ex && tot) { rec = fmt(ex[i]); const v = ex[i] / tot * E[i]; ws = fmt(v, 2); wsum += v }
+    return `<tr><td class="b">${secLabel(s)}</td><td>${rec}</td><td>${marksWord(tot)}</td><td>${fmt(E[i])}%</td><td>${ws}</td></tr>`;
+  }).join("");
+  return title + `<table><tr><th>Section</th><th>Marks received</th><th>Total marks</th><th>% of exam</th><th>Weighted score<small>marks received ÷ total marks × % of exam</small></th></tr>${rows}
+    <tr><td class="b">TOTAL</td><td>${ex ? fmt(exTot) : ""}</td><td>${marksWord(T)}</td><td>100%</td><td>${ex ? fmt(wsum, 2) : "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"} / 100</td></tr></table>` +
+    (ex ? `<p class="small">Example: ${fmt(wsum, 2)} / 100 = ${pct(wsum / 100)} on the exam, so ${fmt(wsum / 100 * tw, 2)} of the ${fmt(tw)} points toward the final mark. Adding raw marks instead (${fmt(exTot)} / ${fmt(T)} = ${pct(exTot / T)}) gives a different result, because a mark is worth a different amount in each section.</p>` : "");
+}
+function refresh1() {
+  const W = weights(), T = examTotal(), EW = num(S.examWeight), tw = W.reduce((a, b) => a + b, 0);
+  const setT = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v };
+  const setH = (id, v) => { const e = document.getElementById(id); if (e) e.innerHTML = v };
+  S.sections.forEach((s, i) => {
+    s.groups.forEach(g => setT("gt" + g.id, fmt(num(g.count) * num(g.points))));
+    const tot = secTotal(s);
+    setT("sm" + s.id, fmt(tot)); setT("sw" + s.id, fmt(W[i]) + "%"); setT("se" + s.id, pct(tw ? W[i] / tw : 0)); setT("sv" + s.id, tot ? fmt(W[i] / tot, 3) + "%" : "–");
+  });
+  setT("smT", fmt(T)); setT("swT", S.mode === "custom" && S.unit === "exam" ? fmt(S.sections.reduce((a, s) => a + num(s.weight), 0)) + "% of exam" : fmt(tw) + "%");
+  const keyMin = S.sections.reduce((a, s) => a + num(s.keyMin), 0);
+  setH("stT", keyMin ? `${fmt(keyMin)} min<div class="small">students: about ${fmt(keyMin * 2)}–${fmt(keyMin * 3)}</div>` : "");
+  let chk = "";
+  if (S.mode === "custom") {
+    const target = S.unit === "exam" ? 100 : EW, entered = S.sections.reduce((a, s) => a + num(s.weight), 0);
+    chk = Math.abs(entered - target) < 0.01 ? `<span class="ok">✓ The weights add to ${fmt(target)}%${S.unit === "exam" ? " of the exam" : ""}.</span>`
+      : `<span class="bad">⚠ The weights add to ${fmt(entered)}%. They need to add to ${fmt(target)}%${S.unit === "exam" ? " of the exam" : ""}.</span>`;
+    const zero = S.sections.filter(s => num(s.weight) <= 0 && secTotal(s) > 0).map(s => s.name);
+    if (zero.length) chk += ` <span class="warn">Section ${zero.map(esc).join(", ")} has marks but no weight.</span>`;
+  } else chk = `<span class="ok">✓ Every mark is worth ${T ? fmt(EW / T, 3) : "–"}% of the final mark.</span>`;
+  if (keyMin && num(S.designMin)) chk += keyMin * 3 <= num(S.designMin) ? ` <span class="ok">✓ Fits the ${fmt(num(S.designMin))}-minute design length.</span>` : ` <span class="bad">⚠ Students may need about ${fmt(keyMin * 3)} minutes; the design length is ${fmt(num(S.designMin))}.</span>`;
+  setH("wCheck", chk);
+  setT("sumHint", S.mode === "points" ? "Every mark is worth the same, so students’ marks can simply be added up." : "Sections are weighted differently, so add up the weighted scores, not the raw marks.");
+  setH("sumOut", sumTableHTML());
+  const br = [`<tr><th>Section</th><th>Kind of question</th><th>Marks</th><th>% of exam</th><th>% of final mark</th><th>Each question<small>% of final mark</small></th></tr>`];
+  S.sections.forEach((s, i) => { const tot = secTotal(s); s.groups.forEach(g => { const each = tot ? num(g.points) / tot * W[i] : 0;
+    br.push(`<tr><td class="b">${esc(s.name)}</td><td>${esc(g.label || "Questions")} <span class="small">(${fmt(num(g.count))} × ${marksWord(num(g.points))})</span></td><td>${fmt(num(g.count) * num(g.points))}</td><td>${pct(tw ? each * num(g.count) / tw : 0)}</td><td>${fmt(each * num(g.count), 2)}%</td><td>${fmt(each, 3)}%</td></tr>`) }) });
+  setH("brkOut", `<table>${br.join("")}</table>`);
+  const parts = [`<p>This ${(() => { const i = courseInfo(S.course); return i && !i.err ? esc(S.course) + " " : "" })()}exam has a weight of <b>${fmt(EW)}%</b> of the final mark and has <b>${marksWord(T)}</b> in ${S.sections.length} section${S.sections.length === 1 ? "" : "s"}. ${S.mode === "points" ? "Every mark is worth the same, so each section’s weight follows its marks." : "Each section’s weight was chosen by the teacher."}</p>`];
+  const per = S.sections.map((s, i) => secTotal(s) ? W[i] / secTotal(s) : 0);
+  S.sections.forEach((s, i) => parts.push(`<p><b>Section ${esc(s.name)}${s.title ? " (" + esc(s.title) + ")" : ""}</b> has ${marksWord(secTotal(s))} and counts for <b>${fmt(W[i])}%</b> of the final mark (${pct(tw ? W[i] / tw : 0)} of the exam): ${s.groups.map(g => `${fmt(num(g.count))} × ${esc(g.label || "question")} at ${marksWord(num(g.points))} each`).join(", ")}. One mark here is worth ${fmt(per[i], 3)}% of the final mark.</p>`));
+  const v = per.filter(x => x > 0);
+  if (v.length > 1 && Math.max(...v) / Math.min(...v) > 1.01) {
+    const hi = S.sections[per.indexOf(Math.max(...v))].name, lo = S.sections[per.indexOf(Math.min(...v))].name;
+    parts.push(`<p><b>Marks are not worth the same in every section.</b> A mark in Section ${esc(hi)} is worth ${fmt(Math.max(...v) / Math.min(...v), 1)} times a mark in Section ${esc(lo)}, so total the exam with weighted scores, not raw marks.</p>`);
+  } else if (v.length > 1) parts.push(`<p>Every mark is worth the same, so students’ marks can be added up and converted directly.</p>`);
+  if (S.mode === "custom") { const target = S.unit === "exam" ? 100 : EW, e = S.sections.reduce((a, s) => a + num(s.weight), 0); if (Math.abs(e - target) > 0.01) parts.push(`<p class="bad"><b>Check:</b> the section weights add to ${fmt(e)}%, not ${fmt(target)}%.</p>`) }
+  if (keyMin && num(S.designMin)) parts.push(`<p><b>Time:</b> writing the answers took about ${fmt(keyMin)} minutes. Students need 2 to 3 times as long: about ${fmt(keyMin * 2)}–${fmt(keyMin * 3)} minutes, against a ${fmt(num(S.designMin))}-minute design length.</p>`);
+  setH("rep1", parts.join(""));
+  renderChecks();
+}
+
+/* ============ page 2 ============ */
+const allGroups = () => { const o = []; S.sections.forEach((s, i) => s.groups.forEach((g, j) => o.push({ s, g, i, j }))); return o };
+const usesCriteria = g => g.tool === "rubric" || g.tool === "likert" || g.tool === "single";
+/* marks the tool is built on: criteria tools = sum of criteria; others = their own marks box (follows the question until changed) */
+const toolMarks = g => usesCriteria(g) ? g.criteria.reduce((a, c) => a + num(c.marks), 0) : (g.toolMarks === null || g.toolMarks === undefined || g.toolMarks === "" ? num(g.points) : num(g.toolMarks));
+const TOOLNAME = { rw: "right or wrong", select: "select-all scoring (partial credit)", rubric: "a rubric (criteria × levels)", single: "a single-point rubric (Level 3 described)",
+                   anchors: "points with anchor marks", likert: "a Likert scale (tick a box on each line)", holistic: "a holistic scale (one level for the whole response)" };
+const COPYNAME = { rubric: "Copy rubric", single: "Copy single-point rubric", select: "Copy scoring guide", anchors: "Copy marking guide", likert: "Copy Likert scale", holistic: "Copy holistic scale" };
+
+/* select-all: net correct picks (correct minus wrong) → level → mark, spread across the achievement chart */
+function selTable(g) {
+  if (selManual(g)) {   /* the teacher writes the right/wrong picks for each level; marks come from the achievement chart */
+    const N = toolMarks(g), lm = levelMarks(N, num(S.rounding)), txt = g.selManual || [];
+    return { manual: true, rows: [4, 3, 2, 1].map((L, q) => ({ L, m: L === 4 ? lm[4] : lm[L], txt: txt[q] || "" })), flags: lm.flags.slice(), missing: [] };
+  }
+  const N = toolMarks(g), r = num(S.rounding), C = Math.max(1, Math.min(20, Math.round(num(g.selCorrect) || 4))), flags = [];
+  const lv = k => C === 1 ? 4 : 1 + Math.round((k - 1) * 3 / (C - 1));
+  const by = { 1: [], 2: [], 3: [], 4: [] }, rows = [];
+  for (let k = 1; k <= C; k++) by[lv(k)].push(k);
+  [1, 2, 3, 4].forEach(L => {
+    const ks = by[L], n = ks.length, [a, b] = BANDS[L];
+    ks.forEach((k, idx) => {
+      const top = L === 4 && idx === n - 1, p = L === 4 ? 0.8 + 0.2 * (idx + 1) / n : a + (b - a) * (idx + 0.5) / n;
+      let v = top ? N : roundTo(p * N, r);
+      if (!top && !inBand(v, N, L)) { const nb = nearestIn(p * N, N, L, r); if (nb !== null) v = nb; else if (!flags.includes(L)) flags.push(L) }
+      rows.push({ k, L, m: r2(v) });
+    });
+  });
+  rows.sort((x, y) => y.k - x.k);
+  const merged = [];   /* counts that land on the same mark share a row, e.g. "3–4 correct" */
+  rows.forEach(x => { const last = merged[merged.length - 1]; if (last && last.L === x.L && last.m === x.m) last.lo = x.k; else merged.push({ hi: x.k, lo: x.k, L: x.L, m: x.m }) });
+  return { C, rows: merged, flags, missing: [1, 2, 3, 4].filter(L => !by[L].length) };
+}
+const selManual = g => g.selRule === "manual";
+const selCancel = g => !selManual(g);
+const selMarkTxt = (m, N) => Array.isArray(m) ? `<b>${fmt(m[0])}–${fmt(m[1])}</b> (${pct(m[0] / N, 0)}–100%)` : `<b>${fmt(m)}</b> (${pct(m / N, 0)})`;
+const BANDTXT = { 1: "50–59%", 2: "60–69%", 3: "70–79%", 4: "80–100%" };
+const selPick = (x, C) => x.hi !== x.lo ? `${x.lo}–${x.hi} correct` : x.hi === C ? `All ${C} correct` : `${x.hi} correct`;
+function selTableHTML(g, copy) {
+  const t = selTable(g), TH = copy ? ` style="background:#dfe7f2;color:#1b2a47;font-weight:bold;text-align:left;padding:6px 8px;border:1px solid #c8ced8;font-family:Arial;font-size:10pt"` : "",
+    TD = copy ? ` style="padding:6px 8px;border:1px solid #c8ced8;font-family:Arial;font-size:10pt"` : "";
+  if (t.manual) return `<table${copy ? ` style="border-collapse:collapse;width:6.5in"` : ""}><tr><th${TH}>Right and wrong picks</th><th${TH}>Level</th><th${TH}>Mark</th></tr>
+    ${t.rows.map(x => `<tr><td${TD}>${esc(x.txt)}</td><td${TD}>Level ${x.L} · ${QUAL[x.L].toLowerCase()} (${BANDTXT[x.L]})</td><td${TD}>${selMarkTxt(x.m, toolMarks(g))}</td></tr>`).join("")}
+    <tr><td${TD}>Left blank</td><td${TD}>No evidence</td><td${TD}><b>0</b></td></tr></table>`;
+  return `<table${copy ? ` style="border-collapse:collapse;width:100%"` : ""}><tr><th${TH}>Correct picks${selCancel(g) ? `<br><span style="font-weight:normal;font-size:9pt;text-transform:none">after taking away wrong picks</span>` : ""}</th><th${TH}>Level</th><th${TH}>Mark</th></tr>
+    ${t.rows.map(x => `<tr><td${TD}>${selPick(x, t.C)}</td><td${TD}>Level ${x.L} · ${QUAL[x.L].toLowerCase()} (${["50–59%", "60–69%", "70–79%", "80–100%"][x.L - 1]})</td><td${TD}><b>${fmt(x.m)}</b> (${pct(x.m / toolMarks(g), 0)})</td></tr>`).join("")}
+    <tr><td${TD}>${selCancel(g) ? "None, or as many wrong as right" : "None"}</td><td${TD}>No evidence</td><td${TD}><b>0</b></td></tr></table>`;
+}
+
+/* the steps of a scale: L1–L3 single marks, L4 a range; with 4+, Level 4 is 80–89% and 4+ is 90–100% */
+function scaleSteps(m, r, plus) {
+  const lm = levelMarks(m, r), out = [[1, "Limited", "Level 1", lm[1]], [2, "Some", "Level 2", lm[2]], [3, "Considerable", "Level 3", lm[3]]], flags = lm.flags.slice();
+  if (!plus) out.push([4, "High degree", "Level 4", lm[4]]);
+  else {
+    const lo4 = r2(Math.min(m, ceilTo(0.8 * m, r))), hi4 = r2(ceilTo(0.9 * m, r) - r), lo5 = r2(Math.min(m, ceilTo(0.9 * m, r)));
+    if (hi4 < lo4) flags.push("4");
+    out.push([4, "High degree", "Level 4 · 80–89%", [lo4, Math.max(lo4, hi4)]], [5, "Exceeds Expectations", "4+ · 90–100%", [lo5, m]]);
+  }
+  return { steps: out, flags };
+}
+const stepTxt = v => Array.isArray(v) ? (v[0] === v[1] ? fmt(v[0]) : fmt(v[0]) + "–" + fmt(v[1])) : fmt(v);
+
+function marksBox(g, i, j) {
+  const base = `sections.${i}.groups.${j}`;
+  if (usesCriteria(g)) return `<p class="small">This ${g.tool === "rubric" ? "rubric" : "scale"} adds to <b id="tm${g.id}"></b>. Change it through each criterion’s marks below.</p>`;
+  return `<p>${g.tool === "rw" ? "Marks for each correct answer" : g.tool === "select" ? "This question is out of" : "Marks this tool is out of"} <input type="number" class="fill" style="max-width:80px" min="0" step="0.5" data-k="${base}.toolMarks" value="${esc(toolMarks(g))}"></p>`;
+}
+const plusBox = (g, base) => `<label class="small"><input type="checkbox" data-k="${base}.add4plus" data-struct="1" ${g.add4plus ? "checked" : ""}> Add 4+ (90–100%)</label>`;
+function critNameCell(g, c, k, base, i, j) {
+  return `<textarea rows="2" placeholder="Criterion" data-k="${base}.criteria.${k}.name" style="font-weight:700;font-size:14px;min-height:0">${esc(c.name)}</textarea>
+    <div style="margin-top:6px" class="small"><input type="number" class="fill" style="max-width:66px" min="0" step="0.5" data-k="${base}.criteria.${k}.marks" value="${esc(c.marks)}"> marks
+    <span class="pctref noprint" id="cp${c.id}" title="Share of this question’s marks. Not included when you copy."></span>
+    ${g.criteria.length > 1 ? `<button class="x noprint" title="Remove criterion" data-act="delCrit" data-i="${i}" data-j="${j}" data-k2="${k}">× remove</button>` : ""}</div>`;
+}
+function renderTools() {
+  document.getElementById("roundName").textContent = ROUNDNAME[S.rounding] || S.rounding;
+  const gs = allGroups(), el = document.getElementById("tools");
+  if (!gs.length) { el.innerHTML = `<p>Add questions on the Weighting page first.</p>`; return }
+  el.innerHTML = gs.map(({ s, g, i, j }) => {
+    const base = `sections.${i}.groups.${j}`;
+    let edit = "";
+    if (g.tool === "rubric") {
+      edit = `<table><tr><th style="width:24%">Criteria</th><th>Level 4 (80–100%)</th><th>Level 3 (70–79%)</th><th>Level 2 (60–69%)</th><th>Level 1 (50–59%)</th></tr>
+        ${g.criteria.map((c, k) => `<tr><td class="c1">${critNameCell(g, c, k, base, i, j)}</td>
+          ${[4, 3, 2, 1].map((L, q) => `<td><span class="lm" id="lm${c.id}_${L}"></span><textarea placeholder="What it looks like" data-k="${base}.criteria.${k}.desc.${q}">${esc(c.desc[q])}</textarea></td>`).join("")}</tr>`).join("")}
+        </table><div class="tools noprint"><button class="link" data-act="addCrit" data-i="${i}" data-j="${j}">+ Add a criterion</button></div>`;
+    } else if (g.tool === "single") {
+      edit = `<p class="small">Describe Level 3, the provincial standard, for each criterion. The marker circles a level and writes feedback under Not yet or Beyond.</p>
+        <table><tr><th style="width:24%">Criteria</th><th style="width:18%">Not yet<br><span style="font-weight:400;text-transform:none">Level 1–2</span></th><th>Level 3: the standard<br><span style="font-weight:400;text-transform:none">70–79%</span></th><th style="width:18%">Beyond<br><span style="font-weight:400;text-transform:none">Level 4</span></th></tr>
+        ${g.criteria.map((c, k) => `<tr><td class="c1">${critNameCell(g, c, k, base, i, j)}</td>
+          <td><span class="lm" id="sn${c.id}"></span><span class="lm" id="sn1${c.id}"></span><div class="small" style="font-style:italic;margin-top:6px">Space for feedback</div></td>
+          <td><span class="lm" id="s3${c.id}"></span><textarea placeholder="What Level 3 looks like" data-k="${base}.criteria.${k}.desc.1">${esc(c.desc[1])}</textarea></td>
+          <td><span class="lm" id="sb${c.id}"></span><div class="small" style="font-style:italic;margin-top:6px">Space for feedback</div></td></tr>`).join("")}
+        </table><div class="tools noprint"><button class="link" data-act="addCrit" data-i="${i}" data-j="${j}">+ Add a criterion</button></div>`;
+    } else if (g.tool === "select") {
+      if (!Array.isArray(g.selManual)) g.selManual = ["", "", "", ""];
+      const PH = ["e.g. All right, no wrong picks", "e.g. All but one right, or one wrong pick", "e.g. About half right", "e.g. At least one right"];
+      edit = `<p>Wrong picks <select class="fill" style="max-width:420px;width:auto" data-k="${base}.selRule" data-struct="1">
+          <option value="cancel" ${selManual(g) ? "" : "selected"}>each wrong pick cancels one correct pick</option>
+          <option value="manual" ${selManual(g) ? "selected" : ""}>I’ll write the right and wrong picks for each level</option></select></p>` +
+        (selManual(g) ? `<p class="small">For each level, write how many right and wrong picks it takes. The marks come from the achievement chart.</p>
+        <table><tr><th style="width:46%">Right and wrong picks<br><span style="font-weight:400;text-transform:none">you decide</span></th><th>Level</th><th style="width:22%">Mark</th></tr>
+        ${[4, 3, 2, 1].map((L, q) => `<tr><td><textarea rows="1" placeholder="${PH[q]}" data-k="${base}.selManual.${q}" style="min-height:0">${esc(g.selManual[q])}</textarea></td><td>Level ${L} · ${QUAL[L].toLowerCase()} (${BANDTXT[L]})</td><td id="sm${g.id}_${L}"></td></tr>`).join("")}
+        <tr><td>Left blank</td><td>No evidence</td><td><b>0</b></td></tr></table>`
+        : `<p class="small">For “select every…” questions. Count the correct picks, take away one for each wrong pick, and the table gives the mark, so ticking every option doesn’t pay off. With 4 or more correct answers, every level can show up.</p>
+        <p>Correct answers in the question <input type="number" class="fill" style="max-width:70px" min="1" max="20" step="1" data-k="${base}.selCorrect" value="${esc(g.selCorrect ?? 4)}"></p>
+        <div id="sel${g.id}"></div>`);
+    } else if (g.tool === "likert") {
+      edit = `<p class="small">Write one line for each thing you’re evaluating. The marker ticks one box on each line; each box carries its mark.</p>
+        <div>${g.criteria.map((c, k) => `<div class="lk-item">
+          <div class="lk-head"><textarea rows="1" placeholder="e.g. Supports the answer with accurate evidence" data-k="${base}.criteria.${k}.name">${esc(c.name)}</textarea>
+            <span class="small"><input type="number" class="fill" style="max-width:66px" min="0" step="0.5" data-k="${base}.criteria.${k}.marks" value="${esc(c.marks)}"> marks
+            <span class="pctref noprint" id="cp${c.id}" title="Share of this question’s marks. Not included when you copy."></span>
+            ${g.criteria.length > 1 ? `<button class="x noprint" title="Remove" data-act="delCrit" data-i="${i}" data-j="${j}" data-k2="${k}">× remove</button>` : ""}</span></div>
+          <div id="lk${c.id}"></div></div>`).join("")}</div>
+        <div class="tools noprint"><button class="link" data-act="addCrit" data-i="${i}" data-j="${j}">+ Add a line</button>${plusBox(g, base)}</div>`;
+    } else if (g.tool === "anchors") {
+      edit = `<table><tr><th style="width:16%">Level</th><th style="width:17%">Marks in range</th><th style="width:14%">Anchor mark</th><th>What a response at this level shows</th></tr>
+        ${[4, 3, 2, 1].map((L, q) => `<tr><td class="c1"><b>Level ${L}</b><i>${["80–100%", "70–79%", "60–69%", "50–59%"][q]}</i></td><td id="ar${g.id}_${L}"></td><td class="b" id="aa${g.id}_${L}"></td><td><textarea placeholder="Describe or paste an anchor response" data-k="${base}.anchors.${q}">${esc(g.anchors[q])}</textarea></td></tr>`).join("")}
+        <tr><td class="c1"><b>Not evident</b></td><td>0</td><td class="b">0</td><td>Left blank</td></tr></table>`;
+    } else if (g.tool === "holistic") {
+      edit = `<p class="small">One evaluation of the whole response. List what you’ll look for; you don’t write a description for every level. Quick to mark, and suits reflections, journals and short responses.</p>
+        <table><tr><th>Look for</th><th class="noprint" style="width:30px"></th></tr>
+        ${g.lookfors.map((t, k) => `<tr><td><textarea rows="1" placeholder="e.g. Shows each step of the process" data-k="${base}.lookfors.${k}" style="min-height:0">${esc(t)}</textarea></td><td class="noprint" style="text-align:center">${g.lookfors.length > 1 ? `<button class="x" data-act="delLook" data-i="${i}" data-j="${j}" data-k2="${k}">×</button>` : ""}</td></tr>`).join("")}</table>
+        <div class="tools noprint"><button class="link" data-act="addLook" data-i="${i}" data-j="${j}">+ Add a look-for</button>${plusBox(g, base)}</div>
+        <p style="margin:14px 0 2px"><b>The scale</b> <span class="small">Choose the one level that best fits the whole response; the mark comes from the table.</span></p>
+        <div id="hs${g.id}"></div>`;
+    } else edit = `<p class="small">Each question is right or wrong. Pair closed questions like these with questions that let every level show up.</p>`;
+    const short = g.tool === "anchors" || g.tool === "holistic" || g.tool === "select";
+    return `<div id="tool${g.id}"><hr class="rule">
+      <h2>Section ${esc(s.name)} · ${esc(g.label || "Questions")} <span class="small" style="font-weight:400">${fmt(num(g.count))} × ${marksWord(num(g.points))} on the Weighting page</span></h2>
+      <p class="noprint">Mark with <select class="fill" style="max-width:360px;width:auto" data-k="${base}.tool" data-struct="1">
+        ${Object.entries(TOOLNAME).map(([v, t]) => `<option value="${v}" ${g.tool === v ? "selected" : ""}>${t}</option>`).join("")}</select></p>
+      <div class="noprint">${marksBox(g, i, j)}</div>
+      <div class="scroll">${edit}</div>
+      <div id="tf${g.id}"></div>
+      ${g.tool !== "rw" ? `<div class="tools noprint"><button class="btn" data-copy="tool" data-g="${g.id}">${COPYNAME[g.tool]}</button><span class="small">${g.tool === "select" ? "For markers. Put the student line below on the exam instead." : "Paste it into the exam so students can see how they’ll be marked."}</span></div>` : ""}
+      ${short ? `<p style="margin:18px 0 4px"><b>${{ anchors: "Short version", holistic: "Student checklist", select: "Student line" }[g.tool]}</b> <span class="small">${{ anchors: "A one-line strip for when space on the exam is tight.", holistic: "Place it under the question so students can check their work before handing in.", select: "Place it under the question so students know how it’s marked." }[g.tool]}</span></p>
+        <div id="sv${g.id}"></div>
+        <div class="tools noprint"><button class="btn" data-copy="strip" data-g="${g.id}">${{ anchors: "Copy short version", holistic: "Copy checklist", select: "Copy student line" }[g.tool]}</button>
+        ${g.tool === "anchors" ? `<label class="small"><input type="checkbox" data-k="sections.${i}.groups.${j}.stripWords"${g.stripWords ? " checked" : ""}> Add the achievement chart words</label>` : ""}</div>` : ""}
+    </div>`;
+  }).join("");
+}
+function toolSummary(g) {
+  const r = num(S.rounding), N = toolMarks(g), flags = [];
+  if (Math.abs(N - num(g.points)) > 1e-9) flags.push(`This tool is out of ${marksWord(N)}, but the question is worth ${marksWord(num(g.points))} on the Weighting page.`);
+  if (g.tool === "rw") return { N, flags, rw: true };
+  if (g.tool === "select") {
+    const t = selTable(g);
+    t.flags.forEach(L => flags.push(`Level ${L} can’t land inside its range with ${ROUNDNAME[r]}.`));
+    if (t.missing.length) flags.push(`With ${t.C} correct answer${t.C === 1 ? "" : "s"}, ${t.missing.map(L => "Level " + L).join(" and ")} ${t.missing.length === 1 ? "doesn’t" : "don’t"} show up. Use at least 4 correct answers so every level has room.`);
+    return { N, flags, sel: t };
+  }
+  const plus = (g.tool === "likert" || g.tool === "holistic") && g.add4plus;
+  const one = (m, who) => { const sc = scaleSteps(m, r, plus); sc.flags.forEach(L => flags.push(`${who}${L === "4" ? "Level 4 (80–89%) and 4+ can’t both fit" : `Level ${L} can’t land inside its range`} with ${ROUNDNAME[r]}.`)); return sc };
+  if (g.tool === "anchors" || g.tool === "holistic") { const sc = one(N, ""), lm = levelMarks(N, r); return { N, scs: [sc], L4: lm[4], L3: lm[3], L2: lm[2], L1: lm[1], flags } }
+  const cs = g.criteria, scs = cs.map((c, k) => one(num(c.marks), `“${c.name || "Criterion " + (k + 1)}” (${marksWord(num(c.marks))}): `)), lms = cs.map(c => levelMarks(num(c.marks), r));
+  const tot = L => r2(lms.reduce((a, lm) => a + lm[L], 0));
+  return { N, scs, lms, L4: [r2(lms.reduce((a, lm) => a + lm[4][0], 0)), N], L3: tot(3), L2: tot(2), L1: tot(1), flags };
+}
+function holisticTable(g, copy) {
+  const sc = scaleSteps(toolMarks(g), num(S.rounding), g.add4plus).steps;
+  const TH = copy ? ` style="background:#dfe7f2;color:#1b2a47;font-weight:bold;text-align:center;padding:6px;border:1px solid #c8ced8;font-family:Arial;font-size:10pt"` : ` style="text-align:center"`;
+  const TD = copy ? ` style="text-align:center;padding:6px;border:1px solid #c8ced8;font-family:Arial;font-size:10pt"` : ` style="text-align:center"`;
+  return `<table style="border-collapse:collapse;width:100%"><tr>${sc.map(st => `<th${TH}>${st[1]}<br><span style="font-weight:normal;font-size:9pt;text-transform:none">${st[2]}</span></th>`).join("")}</tr>
+    <tr>${sc.map(st => `<td${TD}>${stepTxt(st[3])}</td>`).join("")}</tr></table>`;
+}
+function refresh2() {
+  const r = num(S.rounding);
+  allGroups().forEach(({ g, i, j }) => {
+    const ts = toolSummary(g), N = toolMarks(g);
+    const tm = document.getElementById("tm" + g.id); if (tm) tm.textContent = marksWord(N);
+    if (g.tool === "rubric") g.criteria.forEach((c, k) => { const lm = ts.lms[k]; [4, 3, 2, 1].forEach(L => { const e = document.getElementById(`lm${c.id}_${L}`); if (e) e.textContent = L === 4 ? l4Txt(lm) + " Marks:" : MarksWord(lm[L]) + ":" }) });
+    if (g.tool === "single") g.criteria.forEach((c, k) => { const lm = ts.lms[k], set = (id, t) => { const e = document.getElementById(id); if (e) e.textContent = t };
+      set("sn" + c.id, `Level 2: ${MarksWord(lm[2])}`); set("sn1" + c.id, `Level 1: ${MarksWord(lm[1])}`); set("s3" + c.id, `Level 3: ${MarksWord(lm[3])}`); set("sb" + c.id, `Level 4: ${l4Txt(lm)} Marks`) });
+    if (g.tool === "select" && selManual(g)) ts.sel.rows.forEach(x => { const e = document.getElementById(`sm${g.id}_${x.L}`); if (e) e.innerHTML = selMarkTxt(x.m, N) });
+    else if (g.tool === "select") { const e = document.getElementById("sel" + g.id); if (e) e.innerHTML = selTableHTML(g, false) }
+    if (g.tool === "likert") g.criteria.forEach((c, k) => { const e = document.getElementById("lk" + c.id); if (e) e.innerHTML = `<div class="lk-steps">${ts.scs[k].steps.map(st => `<div class="lk-step"><span class="lk-box">☐</span><span class="lk-mark">${stepTxt(st[3])}</span><span class="lk-lab">${st[1]}<br>${st[2]}</span></div>`).join("")}</div>` });
+    if (usesCriteria(g)) g.criteria.forEach(c => { const e = document.getElementById("cp" + c.id); if (e) e.textContent = N ? `${fmt(num(c.marks) / N * 100, 1)}% of this question` : "" });
+    if (g.tool === "anchors") [4, 3, 2, 1].forEach(L => { const a = document.getElementById(`ar${g.id}_${L}`), b = document.getElementById(`aa${g.id}_${L}`); if (a) a.textContent = rangeTxt(bandRange(N, L, r)); if (b) b.textContent = L === 4 ? fmt(anchor4(N, r)) : fmt(ts["L" + L]) });
+    if (g.tool === "holistic") { const e = document.getElementById("hs" + g.id); if (e) e.innerHTML = holisticTable(g, false) }
+    const sv = document.getElementById("sv" + g.id); if (sv) sv.innerHTML = stripHTML(g);
+    const fixes = [];
+    if (Math.abs(N - num(g.points)) > 1e-9) fixes.push(`<button class="link" data-act="useSum" data-i="${i}" data-j="${j}">Make the question worth ${marksWord(N)} (updates the weighting)</button>`, `<button class="link" data-act="scaleCrit" data-i="${i}" data-j="${j}">Keep the question at ${marksWord(num(g.points))}${usesCriteria(g) ? " and scale the criteria" : ""}</button>`);
+    if (r > 0.25 && ts.flags.some(x => /can’t/.test(x))) fixes.push(`<button class="link" data-act="quarter">Switch to quarter marks</button>`);
+    const f = document.getElementById("tf" + g.id);
+    if (f) f.innerHTML = ts.flags.length ? ts.flags.map(x => `<p class="note warn">⚠ ${x}</p>`).join("") + (fixes.length ? `<p class="noprint" style="display:flex;gap:16px;flex-wrap:wrap">${fixes.join("")}</p>` : "") : "";
+  });
+  const parts = [];
+  allGroups().forEach(({ s, g }) => {
+    const ts = toolSummary(g), N = toolMarks(g), name = `<b>Section ${esc(s.name)} · ${esc(g.label || "Questions")}</b> (${fmt(num(g.count))} × ${marksWord(num(g.points))})`;
+    const mism = Math.abs(N - num(g.points)) > 1e-9 ? ` <span class="warn">The tool is out of ${marksWord(N)}, not ${marksWord(num(g.points))}.</span>` : "";
+    if (ts.rw) { parts.push(`<p>${name}: marked right or wrong, ${marksWord(N)} for each correct answer.${mism}</p>`); return }
+    if (ts.sel) { const t = ts.sel, warn = ts.flags.filter(x => !/^This tool is out of/.test(x));
+      parts.push(`<p>${name}: marked with select-all scoring. ${t.manual ? `The teacher set the right and wrong picks for each level. ${t.rows.map(x => `Level ${x.L}${x.txt.trim() ? ` (${esc(x.txt.trim())})` : ""} earns ${Array.isArray(x.m) ? fmt(x.m[0]) + "–" + fmt(x.m[1]) : fmt(x.m)}`).join(", ")}; a blank response earns 0.` : `There are ${t.C} correct answers, and each wrong pick cancels a correct one. ${t.rows.map(x => `${selPick(x, t.C)} earns ${fmt(x.m)} (Level ${x.L})`).join(", ")}; none earns 0.`} ${warn.length ? `<span class="warn">To check: ${warn.join(" ")}</span>` : "Every level lands inside its achievement chart range."}${mism}</p>`); return }
+    const nLook = g.lookfors.filter(x => x.trim()).length, plus = g.add4plus && (g.tool === "likert" || g.tool === "holistic");
+    const tool = { single: `a single-point rubric with ${g.criteria.length} criteri${g.criteria.length === 1 ? "on" : "a"} (${g.criteria.map(c => fmt(num(c.marks))).join(", ")} marks), Level 3 described`,
+                   rubric: `a rubric with ${g.criteria.length} criteri${g.criteria.length === 1 ? "on" : "a"} (${g.criteria.map(c => fmt(num(c.marks))).join(", ")} marks)`,
+                   anchors: "points with an anchor mark for each level",
+                   likert: `a Likert scale with ${g.criteria.length} criteri${g.criteria.length === 1 ? "on" : "a"} (${g.criteria.map(c => fmt(num(c.marks))).join(", ")} marks), each a line of tick boxes`,
+                   holistic: `a holistic scale (one evaluation of the whole response, with ${nLook || "no"} look-for${nLook === 1 ? "" : "s"})` }[g.tool];
+    const sc = g.tool === "holistic" ? ts.scs[0].steps : null;
+    const top = plus && sc ? ` A 4+ (90–100%) earns ${stepTxt(sc[4][3])}.` : plus ? " Each criterion also has a 4+ step (90–100%)." : "";
+    const cant = ts.flags.filter(x => /can’t/.test(x));
+    parts.push(`<p>${name}: marked with ${tool}. Level 4 earns ${fmt(ts.L4[0])}–${fmt(ts.L4[1])} (${pct(ts.L4[0] / N, 0)}–100%), Level 3 earns ${fmt(ts.L3)} (${pct(ts.L3 / N)}), Level 2 earns ${fmt(ts.L2)} (${pct(ts.L2 / N)}) and Level 1 earns ${fmt(ts.L1)} (${pct(ts.L1 / N)}).${top} ${cant.length ? `<span class="warn">To check: ${cant.join(" ")}</span>` : "Every level lands inside its achievement chart range."}${mism}</p>`);
+  });
+  parts.push(`<p class="small">Achievement chart: Level 1 50–59%, Level 2 60–69%, Level 3 70–79% (provincial standard), Level 4 80–100%. Limited evidence is Level 1, not a failing mark; only a blank response earns 0.</p>`);
+  document.getElementById("rep2").innerHTML = parts.join("");
+  renderChecks();
+}
+
+/* short versions: anchors = one-line strip; holistic = student checklist + mark line */
+function stripHTML(g) {
+  const N = toolMarks(g), r = num(S.rounding), words = { 4: "thorough", 3: "considerable", 2: "some", 1: "limited" };
+  const cell = "border:1px solid #9aa0a6;padding:3px 7px;font-family:Arial;font-size:9pt;line-height:1.3;vertical-align:middle";
+  if (g.tool === "select")
+    return `<table style="border-collapse:collapse;width:auto;margin:0"><tr><td style="${cell}">Select every answer that applies. ${selCancel(g) ? "Each correct choice earns marks; each wrong choice cancels one correct choice." : "Your mark depends on how many correct and incorrect choices you make."}</td><td style="${cell};font-weight:bold;white-space:nowrap">Mark: ______ / ${fmt(N)}</td></tr></table>`;
+  if (g.tool === "holistic") {
+    const items = g.lookfors.filter(x => x.trim());
+    return `<table style="border-collapse:collapse;width:auto;margin:0"><tr><td style="${cell};font-weight:bold;background:#dfe7f2">Before you hand in, check that you completed:</td><td style="${cell};font-weight:bold;white-space:nowrap">Mark: ______ / ${fmt(N)}</td></tr>
+      ${(items.length ? items : ["(add look-fors above)"]).map(t => `<tr><td colspan="2" style="${cell}">☐ ${esc(t)}</td></tr>`).join("")}</table>`;
+  }
+  return `<table style="border-collapse:collapse;width:auto;margin:0"><tr>
+    <td style="${cell};font-weight:bold;white-space:nowrap">Mark: ______ / ${fmt(N)}</td>
+    ${[4, 3, 2, 1].map(L => `<td style="${cell};white-space:nowrap"><b>L${L}</b> ${rangeTxt(bandRange(N, L, r))}${g.stripWords ? ` <span style="color:#5f6368">${words[L]}</span>` : ""}</td>`).join("")}
+  </tr></table>`;
+}
+/* full versions, styled like the department's documents */
+function toolCopyHTML(gid) {
+  const hit = allGroups().find(x => x.g.id === gid); if (!hit) return "";
+  const { g } = hit, ts = toolSummary(g), r = num(S.rounding), N = toolMarks(g);
+  const TH = "background:#dfe7f2;color:#1b2a47;font-weight:bold;text-align:left;padding:8px;border:1px solid #c8ced8;font-family:Arial;font-size:10pt;vertical-align:top";
+  const TD = "border:1px solid #c8ced8;padding:8px;vertical-align:top;font-family:Arial;font-size:10pt";
+  const T0 = `<table style="border-collapse:collapse;width:6.5in;max-width:100%">`;
+  const title = t => `<p style="font-family:Arial;font-weight:bold;font-size:13pt;color:#203864;margin:0 0 6pt">${t}</p>`;
+  const note = t => `<p style="font-family:Arial;font-style:italic;font-size:9pt;margin:4pt 0 0">${t}</p>`;
+  if (g.tool === "rubric")
+    return title(`Rubric: ${esc(g.label || "Response")} (${MarksWord(N)})`) + T0 +
+      `<tr><th style="${TH};width:1.3in">Criteria</th><th style="${TH};width:1.3in">Level 4 (80–100%)</th><th style="${TH};width:1.3in">Level 3 (70–79%)</th><th style="${TH};width:1.3in">Level 2 (60–69%)</th><th style="${TH};width:1.3in">Level 1 (50–59%)</th></tr>` +
+      g.criteria.map((c, k) => { const lm = ts.lms[k], v = [l4Txt(lm) + " Marks", MarksWord(lm[3]), MarksWord(lm[2]), MarksWord(lm[1])];
+        return `<tr><td style="${TD}"><b>${esc(c.name)}</b><br><i>(${MarksWord(num(c.marks))})</i></td>${v.map((x, q) => `<td style="${TD}"><b>${x}:</b> ${esc(c.desc[q])}</td>`).join("")}</tr>` }).join("") +
+      `</table>` + note("A task left blank earns 0. Any attempt earns at least Level 1.");
+  if (g.tool === "single")
+    return title(`Single-point rubric: ${esc(g.label || "Response")} (${MarksWord(N)})`) +
+      /* fixed widths that add to 6.5 in (a letter page inside 1 in margins) */
+      (() => { const Wd = ["1.35in", "1.45in", "2.25in", "1.45in"], cellW = (k) => `width:${Wd[k]};`, SUB = `<br><span style="font-weight:normal;text-transform:none">`;
+        return `<table style="border-collapse:collapse;width:6.5in;table-layout:fixed">` +
+          `<tr><th style="${TH};${cellW(0)}">Criteria</th><th style="${TH};${cellW(1)}">Not yet${SUB}Level 1–2</span></th><th style="${TH};${cellW(2)}">Level 3: the standard${SUB}70–79%</span></th><th style="${TH};${cellW(3)}">Beyond${SUB}Level 4</span></th></tr>` +
+          g.criteria.map((c, k) => { const lm = ts.lms[k], G = "color:#5f6368;font-size:9pt";
+            return `<tr><td style="${TD};${cellW(0)}"><b>${esc(c.name)}</b><br><i>(${MarksWord(num(c.marks))})</i></td><td style="${TD};${cellW(1)}"><span style="${G}">Level 2: ${MarksWord(lm[2])}<br>Level 1: ${MarksWord(lm[1])}</span><br><br><br></td><td style="${TD};${cellW(2)}"><b>Level 3: ${MarksWord(lm[3])}</b><br>${esc(c.desc[1])}</td><td style="${TD};${cellW(3)}"><span style="${G}">Level 4: ${l4Txt(lm)} Marks</span><br><br><br></td></tr>` }).join("") + `</table>` })() +
+      note("The marker circles a level for each criterion and writes feedback under Not yet or Beyond. A task left blank earns 0. Any attempt earns at least Level 1.");
+  if (g.tool === "select")
+    return title(`Scoring guide: ${esc(g.label || "Select all")} (${MarksWord(N)})`) + selTableHTML(g, true) +
+      note(selCancel(g) ? "Count the correct picks, then take away one for each wrong pick. A blank response earns 0." : "Count the right and wrong picks, then use the row that fits. A blank response earns 0.");
+  if (g.tool === "likert") {
+    const n = ts.scs[0] ? ts.scs[0].steps.length : 4, w = (100 / (2 * n)).toFixed(2), F = "font-family:Arial;", NB = "border:1px solid #ffffff;";
+    /* every cell gets a white border so Docs and Word don't add their default black grid; the scale line is the only visible border */
+    const lineRow = `<tr>${Array.from({ length: 2 * n }, (_, h) => `<td style="${NB}width:${w}%;height:6pt;padding:0;font-size:1pt;line-height:1pt;${h === 0 || h === 2 * n - 1 ? "" : "border-bottom:1.5pt solid #5f6368;"}">&nbsp;</td>`).join("")}</tr>`;
+    return title(`Likert scale: ${esc(g.label || "Response")} (${MarksWord(N)})`) +
+      g.criteria.map((c, k) => `<table style="border-collapse:collapse;border:none;width:100%;margin:0 0 10pt">
+        <tr><td colspan="${2 * n}" style="${NB}${F}font-size:11pt;font-weight:bold;padding:2pt 0 4pt">${esc(c.name)} <i style="font-weight:normal">(${MarksWord(num(c.marks))})</i></td></tr>
+        ${lineRow}
+        <tr>${ts.scs[k].steps.map(st => `<td colspan="2" style="${NB}${F}text-align:center;vertical-align:top;padding:1pt 2pt;font-size:9pt;line-height:1.25;color:#3c4043"><span style="font-size:14pt;color:#202124">☐</span><br><b>${stepTxt(st[3])}</b><br>${st[1]}<br><span style="color:#5f6368">${st[2]}</span></td>`).join("")}</tr></table>`).join("") +
+      note("Tick one box on each line. A task left blank earns 0.");
+  }
+  if (g.tool === "anchors")
+    return title(`Marking guide: ${esc(g.label || "Response")} (${MarksWord(N)})`) + T0 +
+      `<tr><th style="${TH}">Level</th><th style="${TH}">Marks in range</th><th style="${TH}">Anchor mark</th><th style="${TH}">What a response at this level shows</th></tr>` +
+      [4, 3, 2, 1].map((L, q) => `<tr><td style="${TD}"><b>Level ${L}</b><br><i>${["80–100%", "70–79%", "60–69%", "50–59%"][q]}</i></td><td style="${TD}">${rangeTxt(bandRange(N, L, r))}</td><td style="${TD}"><b>${L === 4 ? fmt(anchor4(N, r)) : fmt(ts["L" + L])}</b></td><td style="${TD}">${esc(g.anchors[q])}</td></tr>`).join("") +
+      `<tr><td style="${TD}"><b>Not evident</b></td><td style="${TD}">0</td><td style="${TD}"><b>0</b></td><td style="${TD}">Left blank</td></tr></table>` + note("Start from the anchor mark for the level, then move within the range.");
+  if (g.tool === "holistic") {
+    const items = g.lookfors.filter(x => x.trim());
+    return title(`Holistic scale: ${esc(g.label || "Response")} (${MarksWord(N)})`) +
+      (items.length ? `<p style="font-family:Arial;font-size:10pt;margin:0 0 4pt"><b>Look for:</b> ${items.map(esc).join(" · ")}</p>` : "") +
+      holisticTable(g, true) + note("Read the whole response, then choose the one level that best fits it. A task left blank earns 0.");
+  }
+  return "";
+}
+
+function sumCopyHTML() {
+  const tmp = document.createElement("div"); tmp.innerHTML = sumTableHTML();
+  tmp.querySelectorAll("p.small").forEach(p => p.remove());
+  tmp.querySelector("p").setAttribute("style", "font-family:Arial;font-weight:bold;font-size:12pt;margin:0 0 8pt");
+  tmp.querySelectorAll("table").forEach(t => t.setAttribute("style", "border-collapse:collapse;width:100%"));
+  tmp.querySelectorAll("th,td").forEach(c => c.setAttribute("style", `border:1px solid #000;padding:7pt;text-align:left;vertical-align:top;font-family:Arial;font-size:11pt;${c.tagName === "TH" || c.classList.contains("b") ? "font-weight:bold;" : ""}${c.tagName === "TH" ? "text-transform:uppercase;background:#dfe7f2;color:#1b2a47;" : ""}`));
+  tmp.querySelectorAll("th small").forEach(s => { s.setAttribute("style", "font-weight:normal;font-style:italic;font-size:8pt;text-transform:none"); s.before(document.createElement("br")) });
+  return tmp.innerHTML;
+}
+
+/* ============ checks that link the marking tools back to the weighting ============ */
+function toolIssues() {
+  const out = [], r = num(S.rounding);
+  S.sections.forEach((s, i) => s.groups.forEach((g, j) => {
+    const where = `Section ${esc(s.name)} · ${esc(g.label || "Questions")}`, N = num(g.points), M = toolMarks(g), tot = secTotal(s);
+    if (Math.abs(M - N) > 1e-9) out.push({ level: "bad", i, j, gid: g.id,
+      text: `<b>${where}:</b> the marking tool is out of ${marksWord(M)}, but the question is worth ${marksWord(N)}${num(g.count) > 1 ? ` (× ${fmt(num(g.count))})` : ""}. Section ${esc(s.name)} would change from ${fmt(tot)} to ${fmt(tot - num(g.count) * N + num(g.count) * M)} marks.`,
+      acts: [[`Make it ${marksWord(M)}`, "useSum"], [`Keep it at ${marksWord(N)}`, "scaleCrit"], ["Open the tool", "goto"]] });
+    const ts = toolSummary(g), rounding = ts.flags.filter(f => /can’t/.test(f));
+    if (rounding.length) out.push({ level: "warn", i, j, gid: g.id,
+      text: `<b>${where}:</b> with ${ROUNDNAME[r]}, ${rounding.length === 1 ? "one level can’t" : rounding.length + " levels can’t"} land inside its achievement chart range, so a student at that level would get the wrong percentage.`,
+      acts: (r > 0.25 ? [["Switch to quarter marks", "quarter"]] : []).concat([["Open the tool", "goto"]]) });
+  }));
+  return out;
+}
+function renderChecks() {
+  const iss = toolIssues(), el = document.getElementById("toolChecks"), tab = document.getElementById("tab2");
+  if (tab) tab.innerHTML = "Marking tools (optional)" + (iss.length ? ` <span class="badge">⚠ ${iss.length}</span>` : "");
+  if (!el) return;
+  el.innerHTML = !iss.length ? "" : `<div class="checks"><p><b>From your marking tools</b></p>${iss.map(x => `<p class="${x.level === "bad" ? "bad" : ""}">⚠ ${x.text}<br>${x.acts.map(([lab, act]) => `<button class="link" data-act="${act}" data-i="${x.i}" data-j="${x.j}" data-g="${x.gid}">${lab}</button>`).join("")}</p>`).join("")}</div>`;
+}
+function scaleCriteria(g) {   /* "keep the question's marks": bring the tool back to them */
+  const N = num(g.points), r = num(S.rounding);
+  if (!usesCriteria(g)) { g.toolMarks = null; return }
+  const sumM = g.criteria.reduce((a, c) => a + num(c.marks), 0);
+  if (!sumM) { g.criteria.forEach((c, k) => c.marks = k === 0 ? N : 0); return }
+  g.criteria.forEach(c => c.marks = r2(Math.max(0, roundTo(num(c.marks) * N / sumM, r))));
+  const diff = r2(N - g.criteria.reduce((a, c) => a + num(c.marks), 0));
+  if (diff) { const big = g.criteria.reduce((a, c) => num(c.marks) > num(a.marks) ? c : a); big.marks = r2(num(big.marks) + diff) }
+}
+function gotoTool(gid) {
+  document.querySelector('.tab[data-tab="2"]').click();
+  setTimeout(() => { const el = document.getElementById("tool" + gid); if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }) }, 30);
+}
+
+/* ============ wiring ============ */
+function setPath(path, value) { const k = path.split("."); let o = S; for (let i = 0; i < k.length - 1; i++) o = o[k[i]]; o[k[k.length - 1]] = value }
+/* DSBN exam guide: breakdown, weight and design length from the course code */
+/* Course list built from the Ontario curriculum CSVs (Curriculum Documents folder): code: [area index, title] */
+const AREAS = /*AREAS*/["American Sign Language as a Second Language", "Business Studies", "Canadian and World Studies", "Classical Studies and International Languages", "Computer Studies", "Cooperative Education", "English as a Second Language and English Literacy Development", "English", "First Nations, Métis, and Inuit Studies", "French as a Second Language", "Guidance and Career Education", "Health and Physical Education", "Interdisciplinary Studies", "Mathematics", "Science", "Social Sciences and Humanities", "Technological Education", "The Arts"]/*END-AREAS*/;
+const CAT = /*CAT*/{"LASBO":[0,"American Sign Language as a Second Language, Level 1"],"BAF3M":[1,"Financial Accounting Fundamentals"],"BAI3E":[1,"Accounting Essentials"],"BAN4E":[1,"Accounting for a Small Business"],"BAT4M":[1,"Financial Accounting Principles"],"BBB4E":[1,"International Business Essentials"],"BBB4M":[1,"International Business Fundamentals"],"BDI3C":[1,"Entrepreneurship - The Venture"],"BDP3O":[1,"Entrepreneurship - The Enterprising Person"],"BDV4C":[1,"Entrepreneurship - Venture Planning in an Electronic Age"],"BMI3C":[1,"Marketing - Goods, Services, Events"],"BMX3E":[1,"Marketing - Retail and Service"],"BOG4E":[1,"Business Leadership - Becoming a Manager"],"BOH4M":[1,"Business Leadership - Management Fundamentals"],"BTA3O":[1,"Information and Communication Technology - The Digital Environment"],"BTX4C":[1,"Information and Communication Technology - Multimedia Solutions"],"BTX4E":[1,"Information and Communication Technology in the Workplace"],"BEM1O":[1,"Building the Entrepreneurial Mindset"],"BEP2O":[1,"Launching and Leading a Business"],"CGD3M":[2,"Regional Geography"],"CGF3M":[2,"Forces of Nature - Physical Processes and Disasters"],"CGG3O":[2,"Travel and Tourism - A Geographic Perspective"],"CGO4M":[2,"Spatial Technologies in Action"],"CGR4E":[2,"Living in a Sustainable World"],"CGR4M":[2,"The Environment and Resource Management"],"CGT3O":[2,"Introduction to Spatial Technologies"],"CGU4M":[2,"World Geography - Urban Patterns and Population Issues"],"CGW4C":[2,"World Issues - A Geographic Analysis"],"CGW4U":[2,"World Issues - A Geographic Analysis"],"CHA3U":[2,"American History"],"CHE3O":[2,"Origins and Citizenship - The History of a Canadian Ethnic Group"],"CHI4U":[2,"Canada - History, Identity, and Culture"],"CHM4E":[2,"Adventures in World History"],"CHT3O":[2,"World History since 1900 - Global and Regional Interactions"],"CHW3M":[2,"World History to the End of the Fifteenth Century"],"CHY4C":[2,"World History since the Fifteenth Century"],"CHY4U":[2,"World History since the Fifteenth Century"],"CIA4U":[2,"Analysing Current Economic Issues"],"CIC4E":[2,"Making Personal Economic Choices"],"CIE3M":[2,"The Individual and the Economy"],"CLN4C":[2,"Legal Studies"],"CLN4U":[2,"Canadian and International Law"],"CLU3E":[2,"Understanding Canadian Law in Everyday Life"],"CLU3M":[2,"Understanding Canadian Law"],"CPC3O":[2,"Politics in Action - Making Change"],"CPW4U":[2,"Canadian and International Politics"],"CGC1D":[2,"Issues in Canadian Geography"],"CGC1P":[2,"Issues in Canadian Geography"],"CGC1W":[2,"Exploring Canadian Geography"],"CHC2D":[2,"Canadian History since World War I"],"CHC2P":[2,"Canadian History since World War I"],"CHV2O":[2,"Civics and Citizenship"],"LVGBD":[3,"Classical Languages (Ancient Greek), Level 1"],"LVGCU":[3,"Classical Languages (Ancient Greek), Level 2"],"LVGDU":[3,"Classical Languages (Ancient Greek), Level 3"],"LVLBD":[3,"Classical Languages (Latin), Level 1"],"LVLCU":[3,"Classical Languages (Latin), Level 2"],"LVLDU":[3,"Classical Languages (Latin), Level 3"],"LVV4U":[3,"Classical Civilization"],"ICD2O":[4,"Digital Technology and Innovations in the Changing World"],"ICS2O":[4,"Introduction to Computer Studies"],"ICS3C":[4,"Introduction to Computer Programming"],"ICS3U":[4,"Introduction to Computer Science"],"ICS4C":[4,"Computer Programming"],"ICS4U":[4,"Computer Science"],"DCO3O":[5,"Creating Opportunities through Co-op"],"ELDAO":[6,"English Literacy Development, ELD Level 1"],"ELDBO":[6,"English Literacy Development, ELD Level 2"],"ELDCO":[6,"English Literacy Development, ELD Level 3"],"ELDDO":[6,"English Literacy Development, ELD Level 4"],"ELDEO":[6,"English Literacy Development, ELD Level 5"],"ESLAO":[6,"English as a Second Language, ESL Level 1"],"ESLBO":[6,"English as a Second Language, ESL Level 2"],"ESLCO":[6,"English as a Second Language, ESL Level 3"],"ESLDO":[6,"English as a Second Language, ESL Level 4"],"ESLEO":[6,"English as a Second Language, ESL Level 5"],"EBT4O":[7,"Business and Technological Communication"],"EMS3O":[7,"Media Studies"],"ENG3C":[7,"English"],"ENG3E":[7,"English"],"ENG3U":[7,"English"],"ENG4C":[7,"English"],"ENG4E":[7,"English"],"ENG4U":[7,"English"],"EPS3O":[7,"Presentation and Speaking Skills"],"ETC3M":[7,"Canadian Literature"],"ETS4C":[7,"Studies in Literature"],"ETS4U":[7,"Studies in Literature"],"EWC4C":[7,"The Writer's Craft"],"EWC4U":[7,"The Writer's Craft"],"OLC4O":[7,"Ontario Secondary School Literacy Course"],"ELS2O":[7,"Literacy Skills - Reading and Writing"],"ENG1D":[7,"English"],"ENG1P":[7,"English"],"ENG2D":[7,"English"],"ENG2P":[7,"English"],"ENL1W":[7,"English"],"NAC1O":[8,"Expressions of First Nations, Métis, and Inuit Cultures"],"NAC2O":[8,"First Nations, Métis, and Inuit in Canada"],"NBE3C":[8,"English - Understanding Contemporary First Nations, Métis, and Inuit Voices"],"NBE3E":[8,"English - Understanding Contemporary First Nations, Métis, and Inuit Voices"],"NBE3U":[8,"English - Understanding Contemporary First Nations, Métis, and Inuit Voices"],"NBV3C":[8,"World Views and Aspirations of First Nations, Métis, and Inuit Communities in Canada"],"NBV3E":[8,"World Views and Aspirations of First Nations, Métis, and Inuit Communities in Canada"],"NDA3M":[8,"Contemporary First Nations, Métis, and Inuit Issues and Perspectives"],"NDG4M":[8,"First Nations, Métis, and Inuit Governance in Canada"],"NDW4M":[8,"Contemporary Indigenous Issues and Perspectives in a Global Context"],"FEF1D":[9,"Extended French"],"FEF2D":[9,"Extended French"],"FEF3U":[9,"Extended French"],"FEF4U":[9,"Extended French"],"FIF1D":[9,"French Immersion"],"FIF1P":[9,"French Immersion"],"FIF2D":[9,"French Immersion"],"FIF2P":[9,"French Immersion"],"FIF3O":[9,"French Immersion"],"FIF3U":[9,"French Immersion"],"FIF4O":[9,"French Immersion"],"FIF4U":[9,"French Immersion"],"FSF1D":[9,"Core French"],"FSF1O":[9,"Core French"],"FSF1P":[9,"Core French"],"FSF2D":[9,"Core French"],"FSF2O":[9,"Core French"],"FSF2P":[9,"Core French"],"FSF3O":[9,"Core French"],"FSF3U":[9,"Core French"],"FSF4O":[9,"Core French"],"FSF4U":[9,"Core French"],"GLE3O":[10,"Advanced Learning Strategies - Skills for Success After Secondary School"],"GLE4O":[10,"Advanced Learning Strategies - Skills for Success After Secondary School"],"GLN4O":[10,"Navigating the Workplace"],"GLS4O":[10,"Advanced Learning Strategies - Skills for Success After Secondary School"],"GPP3O":[10,"Leadership and Peer Support"],"GWL3O":[10,"Designing Your Future"],"GLC2O":[10,"Career Studies"],"GLD2O":[10,"Discovering the Workplace"],"GLE1O":[10,"Learning Strategies 1 - Skills for Success in Secondary School"],"GLE2O":[10,"Learning Strategies 1 - Skills for Success in Secondary School"],"GLS1O":[10,"Learning Strategies 1 - Skills for Success in Secondary School"],"PLF4M":[11,"Recreation and Healthy Active Living Leadership"],"PPL1O":[11,"Healthy Active Living Education"],"PPL2O":[11,"Healthy Active Living Education"],"PPL3O":[11,"Healthy Active Living Education"],"PPL4O":[11,"Healthy Active Living Education"],"PPZ3C":[11,"Health for Life"],"PSK4U":[11,"Introductory Kinesiology"],"IDC3O":[12,"Interdisciplinary Studies"],"IDC4O":[12,"Interdisciplinary Studies"],"IDC4U":[12,"Interdisciplinary Studies"],"IDP3O":[12,"Interdisciplinary Studies"],"IDP4O":[12,"Interdisciplinary Studies"],"IDP4U":[12,"Interdisciplinary Studies"],"MAP4C":[13,"Foundations for College Mathematics"],"MBF3C":[13,"Foundations for College Mathematics"],"MCF3M":[13,"Functions and Applications"],"MCR3U":[13,"Functions"],"MCT4C":[13,"Mathematics for College Technology"],"MCV4U":[13,"Calculus and Vectors"],"MDM4U":[13,"Mathematics of Data Management"],"MEL3E":[13,"Mathematics for Work and Everyday Life"],"MEL4E":[13,"Mathematics for Work and Everyday Life"],"MHF4U":[13,"Advanced Functions"],"MFM1P":[13,"Foundations of Mathematics"],"MFM2P":[13,"Foundations of Mathematics"],"MPM1D":[13,"Principles of Mathematics"],"MPM2D":[13,"Principles of Mathematics"],"MTH1W":[13,"Mathematics"],"SBI3C":[14,"Biology"],"SBI3U":[14,"Biology"],"SBI4U":[14,"Biology"],"SCH3U":[14,"Chemistry"],"SCH4C":[14,"Chemistry"],"SCH4U":[14,"Chemistry"],"SES4U":[14,"Earth and Space Science"],"SNC4E":[14,"Science"],"SNC4M":[14,"Science"],"SPH3U":[14,"Physics"],"SPH4C":[14,"Physics"],"SPH4U":[14,"Physics"],"SVN3E":[14,"Environmental Science"],"SVN3M":[14,"Environmental Science"],"SNC1D":[14,"Science"],"SNC1P":[14,"Science"],"SNC1W":[14,"Science"],"SNC2D":[14,"Science"],"SNC2P":[14,"Science"],"HFA4C":[15,"Nutrition and Health"],"HFA4U":[15,"Nutrition and Health"],"HFC3E":[15,"Food and Culture"],"HFC3M":[15,"Food and Culture"],"HFL4E":[15,"Food and Healthy Living"],"HFN1O":[15,"Food and Nutrition"],"HFN2O":[15,"Food and Nutrition"],"HHD3O":[15,"Dynamics of Human Relationships"],"HHG4M":[15,"Human Development throughout the Lifespan"],"HHS4C":[15,"Families in Canada"],"HHS4U":[15,"Families in Canada"],"HIF1O":[15,"Exploring Family Studies"],"HIF2O":[15,"Exploring Family Studies"],"HIP4O":[15,"Personal Life Management"],"HLS3O":[15,"Housing and Home Design"],"HNB4M":[15,"The World of Fashion"],"HNC3C":[15,"Understanding Fashion"],"HNL2O":[15,"Clothing"],"HPC3O":[15,"Raising Healthy Children"],"HPD4C":[15,"Working With School-Age Children and Adolescents"],"HPW3C":[15,"Working With Infants and Young Children"],"HRF3O":[15,"World Religions and Belief Traditions in Daily Life"],"HRT3M":[15,"World Religions and Belief Traditions - Perspectives, Issues, and Challenges"],"HSB4U":[15,"Challenge and Change in Society"],"HSC4M":[15,"World Cultures"],"HSE3E":[15,"Equity, Diversity, and Social Justice"],"HSE4M":[15,"Equity and Social Justice - From Theory to Practice"],"HSG3M":[15,"Gender Studies"],"HSP3C":[15,"Introduction to Anthropology, Psychology, and Sociology"],"HSP3U":[15,"Introduction to Anthropology, Psychology, and Sociology"],"HZB3M":[15,"Philosophy - The Big Questions"],"HZT4U":[15,"Philosophy - Questions and Theories"],"TCJ3C":[16,"Construction Engineering Technology"],"TCJ3E":[16,"Construction Technology"],"TCJ4C":[16,"Construction Engineering Technology"],"TCJ4E":[16,"Construction Technology"],"TDJ3M":[16,"Technological Design"],"TDJ3O":[16,"Technological Design and the Environment"],"TDJ4M":[16,"Technological Design"],"TDJ4O":[16,"Technological Design in the Twenty-first Century"],"TEJ3E":[16,"Computer Technology"],"TEJ3M":[16,"Computer Engineering Technology"],"TEJ4E":[16,"Computer Technology"],"TEJ4M":[16,"Computer Engineering Technology"],"TFJ3C":[16,"Hospitality and Tourism"],"TFJ3E":[16,"Hospitality and Tourism"],"TFJ4C":[16,"Hospitality and Tourism"],"TFJ4E":[16,"Hospitality and Tourism"],"TGJ3M":[16,"Communications Technology"],"TGJ3O":[16,"Communications Technology - Broadcast and Print Production"],"TGJ4M":[16,"Communications Technology"],"TGJ4O":[16,"Communications Technology - Digital Imagery and Web Design"],"THJ3E":[16,"Green Industries"],"THJ3M":[16,"Green Industries"],"THJ4E":[16,"Green Industries"],"THJ4M":[16,"Green Industries"],"TMJ3C":[16,"Manufacturing Technology"],"TMJ3E":[16,"Manufacturing Technology"],"TMJ3M":[16,"Manufacturing Engineering Technology"],"TMJ4C":[16,"Manufacturing Technology"],"TMJ4E":[16,"Manufacturing Technology"],"TMJ4M":[16,"Manufacturing Engineering Technology"],"TOJ4C":[16,"Child Development and Gerontology"],"TPJ3C":[16,"Health Care"],"TPJ3M":[16,"Health Care"],"TPJ4C":[16,"Health Care"],"TPJ4E":[16,"Health Care - Support Services"],"TPJ4M":[16,"Health Care"],"TTJ3C":[16,"Transportation Technology"],"TTJ3O":[16,"Transportation Technology - Vehicle Ownership"],"TTJ4C":[16,"Transportation Technology"],"TTJ4E":[16,"Transportation Technology - Vehicle Maintenance"],"TWJ3E":[16,"Custom Woodworking"],"TWJ4E":[16,"Custom Woodworking"],"TXJ3E":[16,"Hairstyling and Aesthetics"],"TXJ4E":[16,"Hairstyling and Aesthetics"],"TAS1O":[16,"Technology and the Skilled Trades"],"TAS2O":[16,"Technology and the Skilled Trades"],"ADA3M":[17,"Drama"],"ADA3O":[17,"Drama"],"ADA4E":[17,"Drama"],"ADA4M":[17,"Drama"],"AEA3O":[17,"Exploring and Creating in the Arts"],"AEA4O":[17,"Exploring and Creating in the Arts"],"AMU3M":[17,"Music"],"AMU3O":[17,"Music"],"AMU4E":[17,"Music"],"AMU4M":[17,"Music"],"ASM3M":[17,"Media Arts"],"ASM3O":[17,"Media Arts"],"ASM4E":[17,"Media Arts"],"ASM4M":[17,"Media Arts"],"ATC3M":[17,"Dance"],"ATC3O":[17,"Dance"],"ATC4E":[17,"Dance"],"ATC4M":[17,"Dance"],"AVI3M":[17,"Visual Arts"],"AVI3O":[17,"Visual Arts"],"AVI4E":[17,"Visual Arts"],"AVI4M":[17,"Visual Arts"],"ADA1O":[17,"Drama"],"ADA2O":[17,"Drama"],"ALC1O":[17,"Integrated Arts"],"ALC2O":[17,"Integrated Arts"],"AMU1O":[17,"Music"],"AMU2O":[17,"Music"],"ASM2O":[17,"Media Arts"],"ATC1O":[17,"Dance"],"ATC2O":[17,"Dance"],"AVI1O":[17,"Visual Arts"],"AVI2O":[17,"Visual Arts"]}/*END-CAT*/;
+const TYPES = { W: "de-streamed", D: "academic", P: "applied", O: "open", L: "locally developed", C: "college", M: "university/college", U: "university", E: "workplace" };
+const A_AREAS = ["English", "Mathematics", "Science", "Canadian and World Studies"];
+const C_AREAS = ["Guidance and Career Education", "Cooperative Education", "Interdisciplinary Studies", "American Sign Language as a Second Language"];
+const CHECK = "Confirm against your department’s course-by-course review.";
+function findCourse(c) {
+  if (CAT[c]) return { area: AREAS[CAT[c][0]], title: CAT[c][1] };
+  if (/^L[B-D][A-Z][B-D][DOU]$/.test(c)) return { area: "Classical Studies and International Languages", title: "International Languages, Level " + ("BCD".indexOf(c[3]) + 1) };
+  if (/^LN[A-O][A-E]O$/.test(c)) return { area: "Native Languages", title: "Native Languages, Level " + ("ABCDE".indexOf(c[3]) + 1) };
+  return null;
+}
+function courseInfo(code) {
+  const c = String(code || "").trim().toUpperCase().slice(0, 5);
+  if (!c) return null;
+  const f = findCourse(c), m = c.match(/^([A-Z]{3})([1-4])([A-Z])$/);
+  if (!m && !f) return { err: c.length < 5 ? "Keep typing: course codes have five characters, e.g. MTH1W or CHC2D." : "This code isn’t in the Ontario curriculum list. Check the code, or enter the weight yourself using your department’s course-by-course review." };
+  const i = { code: c, area: f ? f.area : null, title: f ? f.title : null, len: null, max: null };
+  if (!m) {                                                  // level-based courses (ESL/ELD, languages, ASL)
+    i.levelBased = true; i.type = TYPES[c[4]] || "";
+    if (i.area === "American Sign Language as a Second Language") return Object.assign(i, { bd: "C", weight: 0 });
+    return Object.assign(i, { bd: "B", weight: 10 });
+  }
+  const pre = m[1], grade = 8 + +m[2], t = m[3];
+  Object.assign(i, { grade, type: TYPES[t] || "type " + t, fe: grade <= 10 ? 20 : 25 });
+  if (grade === 9) { i.len = 60; i.max = 75 }
+  else if (grade === 10) { if (t === "D") { i.len = 75; i.max = 90 } else if (t === "P" || t === "O") { i.len = 60; i.max = 75 } }
+  else if (t === "C" || t === "M") { i.len = 75; i.max = 90 }
+  else if (t === "U") { i.len = grade === 11 ? 90 : 105; i.max = 120 }
+  if (c === "MTH1W") return Object.assign(i, { bd: "A", weight: 20, len: null, special: "The Grade 9 EQAO Assessment of Mathematics is the written exam (20%). It’s written in the EQAO window, not the exam period, and EQAO sets its length." });
+  if (c === "GLC2O") return Object.assign(i, { bd: "C", weight: 0, len: null, special: "The final evaluation is a 5% financial literacy graduation requirement plus a 15% culminating task." });
+  if (c === "NBE3U" || c === "NBE3C") return Object.assign(i, { bd: "A", weight: 25, special: `A 25% written exam, unlike other Grade 11 First Nations, Métis and Inuit Studies courses. Design length ${i.len} min (maximum block ${i.max} min).` });
+  const area = i.area || ({ E: "English", M: "Mathematics", S: "Science", C: "Canadian and World Studies", G: "Guidance and Career Education" }[pre[0]] || (pre.startsWith("ID") ? "Interdisciplinary Studies" : null));
+  if ((grade <= 10 && t === "L") || (grade >= 11 && (t === "E" || t === "O")) || C_AREAS.includes(area)) return Object.assign(i, { bd: "C", weight: 0, len: null });
+  if (A_AREAS.includes(area)) return Object.assign(i, { bd: "A", weight: i.fe });
+  return Object.assign(i, { bd: "B", weight: 10, len: null });
+}
+const BDNAME = { A: "Breakdown A · written exam only", B: "Breakdown B · written exam and culminating task", C: "Breakdown C · culminating task, no written exam" };
+function courseNoteHTML() {
+  const i = courseInfo(S.course);
+  if (!i) return "";
+  if (i.err) return `<span class="bad">${i.err}</span>`;
+  const what = i.title ? `${esc(i.title)}` : (i.grade ? `Grade ${i.grade} · ${i.type}` : "");
+  let out = `<span class="ok">✓ ${what}${i.title && i.grade ? `, Grade ${i.grade} · ${i.type}` : ""}</span>${i.area ? `<br><span class="small">${esc(i.area)}</span>` : `<br><span class="warn small">Not in the curriculum list, so the breakdown is a best guess from the code.</span>`}<br><b>${BDNAME[i.bd]}</b><br>`;
+  const fe = i.fe ? `${i.fe}%` : "20% or 25%, by grade band";
+  if (i.bd === "C") out += `<b class="bad">No written exam.</b> The weight is set to 0%. `;
+  if (i.special) out += i.special;
+  else if (i.bd === "A") out += `Written exam worth ${i.fe}% of the final mark. Design length ${i.len} min (maximum block ${i.max} min).`;
+  else if (i.bd === "B") out += `Written exam about 10% plus a culminating task${i.fe ? ` of ${i.fe - 10}% (${i.fe}% in all)` : ""}. Adjust the weight to your department’s split. The written portion is short: set your own design length and confirm the block with administration.`;
+  else out += `The final evaluation (${fe}) is a task done in class time: a written evaluation, project, presentation or portfolio.`;
+  if (i.levelBased && i.bd !== "C") out += ` This course is organized by level, not grade${/^E(SL|LD)/.test(i.code) ? ", and ESL/ELD isn’t named in the breakdown table" : ""}.`;
+  return out + ` <span class="warn">${CHECK}</span>`;
+}
+function applyCourse() {
+  const i = courseInfo(S.course);
+  if (i && !i.err) {
+    S.examWeight = i.weight; document.getElementById("examWeight").value = i.weight;
+    S.designMin = i.len || ""; document.getElementById("designMin").value = S.designMin;
+  }
+  document.getElementById("courseNote").innerHTML = courseNoteHTML();
+}
+function renderAll() {
+  document.getElementById("course").value = S.course || ""; document.getElementById("courseNote").innerHTML = courseNoteHTML();
+  document.getElementById("examWeight").value = S.examWeight; document.getElementById("designMin").value = S.designMin;
+  document.getElementById("rounding").value = String(S.rounding); document.getElementById("showExample").checked = S.showExample;
+  renderQTable(); renderSTable(); refresh1(); renderTools(); refresh2(true);
+}
+document.addEventListener("input", e => {
+  const t = e.target;
+  if (t.name === "mode") { S.mode = t.value; if (S.mode === "custom") { const W = weights(); S.unit = "final"; S.sections.forEach((s, i) => { if (!num(s.weight)) s.weight = r2(W[i]) }) } renderSTable(); refresh1(); return }
+  if (t.name === "unit") { const EW = num(S.examWeight); S.sections.forEach(s => { const w = num(s.weight); s.weight = r2(!EW ? w : t.value === "exam" ? w * 100 / EW : w * EW / 100) }); S.unit = t.value; renderSTable(); refresh1(); return }
+  if (t.id === "showExample") { S.showExample = t.checked; refresh1(); return }
+  if (t.id === "course") { S.course = t.value.trim().toUpperCase(); applyCourse(); refresh1(); refresh2(false); return }
+  const k = t.dataset.k; if (!k) return;
+  let v = t.type === "checkbox" ? t.checked : t.value; if (k === "rounding") v = parseFloat(v);
+  setPath(k, v);
+  if (t.dataset.struct || k === "rounding") { renderTools(); refresh1(); refresh2(true); return }
+  if (/^sections\.\d+\.name$/.test(k)) { renderSTable(); renderTools(); refresh2(true) }
+  const m = k.match(/^sections\.(\d+)\.groups\.(\d+)\.(points|label|count)$/);
+  if (m) { const g = S.sections[m[1]].groups[m[2]]; if (m[3] === "points") { g.toolMarks = null; if (g.criteria.length === 1) g.criteria[0].marks = g.points } renderTools(); refresh2(true) }
+  refresh1(); refresh2(false);
+});
+document.addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.classList.contains("tab")) {
+    document.querySelectorAll(".tab").forEach(x => x.classList.toggle("on", x === b));
+    document.getElementById("page1").classList.toggle("hidden", b.dataset.tab !== "1");
+    document.getElementById("page2").classList.toggle("hidden", b.dataset.tab !== "2");
+    window.scrollTo(0, 0); return;
+  }
+  if (b.id === "addSection") { S.sections.push(section(String.fromCharCode(65 + S.sections.length), "", [group("", 1, 1)], 0)); renderAll(); return }
+  if (b.id === "clearAll") { if (!confirm("Clear every section and start blank?")) return; S.sections = [section("A", "", [group("", 1, 1)], S.unit === "exam" ? 100 : num(S.examWeight))]; renderAll(); return }
+  const a = b.dataset.act, i = +b.dataset.i, j = +b.dataset.j;
+  if (a === "addGroup") { S.sections[i].groups.push(group("", 1, 1)); renderAll(); return }
+  if (a === "delGroup") { S.sections[i].groups.splice(j, 1); renderAll(); return }
+  if (a === "delSection") { if (S.sections.length > 1) { S.sections.splice(i, 1); renderAll() } return }
+  if (a === "addCrit") { S.sections[i].groups[j].criteria.push(crit("", 0)); renderTools(); refresh2(true); return }
+  if (a === "delCrit") { const g = S.sections[i].groups[j]; if (g.criteria.length > 1) { g.criteria.splice(+b.dataset.k2, 1); renderTools(); refresh2(true) } return }
+  if (a === "quarter") { S.rounding = 0.25; renderAll(); return }
+  if (a === "useSum") { const g = S.sections[i].groups[j]; g.points = r2(toolMarks(g)); g.toolMarks = null; renderAll(); return }
+  if (a === "addLook") { S.sections[i].groups[j].lookfors.push(""); renderTools(); refresh2(true); return }
+  if (a === "delLook") { const g = S.sections[i].groups[j]; if (g.lookfors.length > 1) { g.lookfors.splice(+b.dataset.k2, 1); renderTools(); refresh2(true) } return }
+  if (a === "scaleCrit") { scaleCriteria(S.sections[i].groups[j]); renderTools(); refresh2(true); refresh1(); return }
+  if (a === "goto") { gotoTool(+b.dataset.g); return }
+  if (a === "suggest") {
+    const T = examTotal(), W = weights(), tw = W.reduce((x, y) => x + y, 0), r = num(S.rounding);
+    document.getElementById("suggestOut").innerHTML = `<p class="small">Keeping ${marksWord(T)} in total, these section totals would make every mark worth the same at your weights:</p>
+      <table style="max-width:420px"><tr><th>Section</th><th>Marks now</th><th>Marks for equal value</th></tr>${S.sections.map((s, i) => `<tr><td class="b">${esc(s.name)}</td><td>${fmt(secTotal(s))}</td><td>${fmt(tw ? roundTo(T * W[i] / tw, r) : 0)}</td></tr>`).join("")}</table>`;
+    return;
+  }
+  if (b.dataset.copy) {
+    const html = b.dataset.copy === "sum" ? sumCopyHTML() : b.dataset.copy === "tool" ? toolCopyHTML(+b.dataset.g)
+      : b.dataset.copy === "strip" ? stripHTML(allGroups().find(x => x.g.id === +b.dataset.g).g) : document.getElementById(b.dataset.copy).innerHTML;
+    copyHTML(html, b); return;
+  }
+  if (b.dataset.print) { const c = document.getElementById(b.dataset.print); c.classList.add("printme"); document.body.classList.add("printing"); window.print(); setTimeout(() => { c.classList.remove("printme"); document.body.classList.remove("printing") }, 500) }
+});
+function copyHTML(html, btn) {
+  const box = document.createElement("div"); box.innerHTML = html;
+  box.style.cssText = "position:fixed;left:-9999px;top:0;width:6.5in;background:#fff;color:#000";   /* letter page width, so Word and Docs keep tables on the page */ document.body.appendChild(box);
+  const range = document.createRange(); range.selectNodeContents(box); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(range);
+  let ok = false; try { ok = document.execCommand("copy") } catch (e) {}
+  sel.removeAllRanges(); box.remove();
+  const old = btn.textContent; btn.textContent = ok ? "Copied ✓" : "Copy didn’t work: select and copy by hand"; setTimeout(() => btn.textContent = old, 1600);
+}
+renderAll();
+</script>
+</body>
+</html>
