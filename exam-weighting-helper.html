@@ -116,7 +116,6 @@ td.c1 i { display: block; font-size: 12.5px }
     <div class="tools noprint">
       <button class="btn" data-copy="sum">Copy chart</button>
       <button class="link" data-print="sumCard">Print</button>
-      <label class="small"><input type="checkbox" id="showExample"> Show a filled-in example</label>
     </div>
   </div>
 
@@ -191,7 +190,7 @@ function loadSaved() {
 let saveT = 0;
 const saveNow = () => { clearTimeout(saveT); try { localStorage.setItem(SAVEKEY, JSON.stringify(S)) } catch (e) {} };
 const saveSoon = () => { clearTimeout(saveT); saveT = setTimeout(saveNow, 300) };
-let S = loadSaved() || sample();
+let S = loadSaved() || sample(); S.showExample = false;   /* the filled-in example option was removed */
 
 /* ============ helpers ============ */
 const num = v => { const n = parseFloat(v); return isFinite(n) ? n : 0 };
@@ -866,14 +865,13 @@ function applyCourse() {
 function renderAll() {
   document.getElementById("course").value = S.course || ""; document.getElementById("courseNote").innerHTML = courseNoteHTML();
   document.getElementById("examWeight").value = S.examWeight; document.getElementById("designMin").value = S.designMin;
-  document.getElementById("rounding").value = String(S.rounding); document.getElementById("showExample").checked = S.showExample;
+  document.getElementById("rounding").value = String(S.rounding);
   renderQTable(); renderSTable(); refresh1(); renderTools(); refresh2(true);
 }
 document.addEventListener("input", e => {
   const t = e.target;
   if (t.name === "mode") { S.mode = t.value; if (S.mode === "custom") { const W = weights(); S.unit = "final"; S.sections.forEach((s, i) => { if (!num(s.weight)) s.weight = r2(W[i]) }) } renderSTable(); refresh1(); return }
   if (t.name === "unit") { const EW = num(S.examWeight); S.sections.forEach(s => { const w = num(s.weight); s.weight = r2(!EW ? w : t.value === "exam" ? w * 100 / EW : w * EW / 100) }); S.unit = t.value; renderSTable(); refresh1(); return }
-  if (t.id === "showExample") { S.showExample = t.checked; refresh1(); return }
   if (t.id === "course") { S.course = t.value.trim().toUpperCase(); applyCourse(); refresh1(); refresh2(false); return }
   const k = t.dataset.k; if (!k) return;
   let v = t.type === "checkbox" ? t.checked : t.value; if (k === "rounding") v = parseFloat(v);
