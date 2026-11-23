@@ -102,13 +102,6 @@ td.c1 i { display: block; font-size: 12.5px }
   <div class="scroll"><table id="qTable"></table></div>
   <div class="tools noprint"><button class="link" id="addSection">+ Add a section</button><button class="link" id="clearAll">Start blank</button><span class="small muted">Your work saves automatically in this browser.</span></div>
 
-  <h2>Sections</h2>
-  <div class="scroll"><table id="sTable"></table></div>
-  <div id="wCheck" class="note"></div>
-  <div class="tools noprint" id="suggestWrap"><button class="link" data-act="suggest">Suggest marks so every mark is worth the same</button></div>
-  <div id="suggestOut"></div>
-  <div id="toolChecks"></div>
-
   <div id="sumCard">
     <h2>Summary of marks</h2>
     <p class="small noprint" id="sumHint"></p>
@@ -118,6 +111,14 @@ td.c1 i { display: block; font-size: 12.5px }
       <button class="link" data-print="sumCard">Print</button>
     </div>
   </div>
+
+  <h2>Sections</h2>
+  <div class="scroll"><table id="sTable"></table></div>
+  <p class="small"><b>Suggested time:</b> students usually take 2 to 3 times as long as you do. Time yourself writing the answers, then multiply by 3.</p>
+  <div id="wCheck" class="note"></div>
+  <div class="tools noprint" id="suggestWrap"><button class="link" data-act="suggest">Suggest marks so every mark is worth the same</button></div>
+  <div id="suggestOut"></div>
+  <div id="toolChecks"></div>
 
   <h2>What each question is worth</h2>
   <div class="scroll" id="brkOut"></div>
@@ -253,7 +254,7 @@ function renderSTable() {
   const custom = S.mode === "custom";
   const head = `<tr><th style="width:12%">Section</th><th style="width:12%">Marks</th>
     <th style="width:24%">Weight<small>${custom ? `<label><input type="radio" name="unit" value="final" ${S.unit === "final" ? "checked" : ""}> % of final mark</label> <label><input type="radio" name="unit" value="exam" ${S.unit === "exam" ? "checked" : ""}> % of exam</label>` : "% of the final mark"}</small></th>
-    <th>% of the exam</th><th>One mark is worth<small>% of the final mark</small></th><th style="width:17%">Your time<small>to write the answers (optional)</small></th></tr>`;
+    <th>% of the exam</th><th>One mark is worth<small>% of the final mark</small></th><th style="width:17%">Suggested time<small>minutes for students (optional)</small></th></tr>`;
   const rows = S.sections.map((s, i) => `<tr><td class="b">${esc(s.name)}</td><td id="sm${s.id}"></td>
     <td>${custom ? `<input type="number" class="fill" min="0" step="0.5" data-k="sections.${i}.weight" value="${esc(s.weight)}" style="max-width:80px"> %` : `<span id="sw${s.id}"></span>`}</td>
     <td id="se${s.id}"></td><td id="sv${s.id}"></td>
@@ -300,7 +301,7 @@ function refresh1() {
   });
   setT("smT", fmt(T)); setT("swT", S.mode === "custom" && S.unit === "exam" ? fmt(S.sections.reduce((a, s) => a + num(s.weight), 0)) + "% of exam" : fmt(tw) + "%");
   const keyMin = S.sections.reduce((a, s) => a + num(s.keyMin), 0);
-  setH("stT", keyMin ? `${fmt(keyMin)} min<div class="small">students: about ${fmt(keyMin * 2)}–${fmt(keyMin * 3)}</div>` : "");
+  setH("stT", keyMin ? `${fmt(keyMin)} min` : "");
   let chk = "";
   if (S.mode === "custom") {
     const target = S.unit === "exam" ? 100 : EW, entered = S.sections.reduce((a, s) => a + num(s.weight), 0);
@@ -309,7 +310,7 @@ function refresh1() {
     const zero = S.sections.filter(s => num(s.weight) <= 0 && secTotal(s) > 0).map(s => s.name);
     if (zero.length) chk += ` <span class="warn">Section ${zero.map(esc).join(", ")} has marks but no weight.</span>`;
   } else chk = `<span class="ok">✓ Every mark is worth ${T ? fmt(EW / T, 3) : "–"}% of the final mark.</span>`;
-  if (keyMin && num(S.designMin)) chk += keyMin * 3 <= num(S.designMin) ? ` <span class="ok">✓ Fits the ${fmt(num(S.designMin))}-minute design length.</span>` : ` <span class="bad">⚠ Students may need about ${fmt(keyMin * 3)} minutes; the design length is ${fmt(num(S.designMin))}.</span>`;
+  if (keyMin && num(S.designMin)) chk += keyMin <= num(S.designMin) ? ` <span class="ok">✓ The suggested times fit the ${fmt(num(S.designMin))}-minute design length.</span>` : ` <span class="bad">⚠ The suggested times add to ${fmt(keyMin)} minutes; the design length is ${fmt(num(S.designMin))}.</span>`;
   setH("wCheck", chk);
   setT("sumHint", S.mode === "points" ? "Every mark is worth the same, so students’ marks can simply be added up." : "Sections are weighted differently, so add up the weighted scores, not the raw marks.");
   setH("sumOut", sumTableHTML());
@@ -326,7 +327,7 @@ function refresh1() {
     parts.push(`<p><b>Marks are not worth the same in every section.</b> A mark in Section ${esc(hi)} is worth ${fmt(Math.max(...v) / Math.min(...v), 1)} times a mark in Section ${esc(lo)}, so total the exam with weighted scores, not raw marks.</p>`);
   } else if (v.length > 1) parts.push(`<p>Every mark is worth the same, so students’ marks can be added up and converted directly.</p>`);
   if (S.mode === "custom") { const target = S.unit === "exam" ? 100 : EW, e = S.sections.reduce((a, s) => a + num(s.weight), 0); if (Math.abs(e - target) > 0.01) parts.push(`<p class="bad"><b>Check:</b> the section weights add to ${fmt(e)}%, not ${fmt(target)}%.</p>`) }
-  if (keyMin && num(S.designMin)) parts.push(`<p><b>Time:</b> writing the answers took about ${fmt(keyMin)} minutes. Students need 2 to 3 times as long: about ${fmt(keyMin * 2)}–${fmt(keyMin * 3)} minutes, against a ${fmt(num(S.designMin))}-minute design length.</p>`);
+  if (keyMin) parts.push(`<p><b>Time:</b> the suggested times add to ${fmt(keyMin)} minutes${num(S.designMin) ? `, against a ${fmt(num(S.designMin))}-minute design length` : ""}.</p>`);
   setH("rep1", parts.join(""));
   renderChecks();
 }
