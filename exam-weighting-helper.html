@@ -45,6 +45,7 @@ textarea { resize: vertical; min-height: 38px; font-size: 13px; line-height: 1.4
 .btn:hover { background: #f8fbff }
 .tools { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin: 8px 0 0 }
 .note { font-size: 13px; margin: 6px 0 }
+.rec { display: inline-block; background: #eef6ee; border-left: 3px solid var(--ok); padding: 6px 10px; margin: 4px 0; color: #1f2937 }
 #course::placeholder { text-transform: none }
 .ok { color: var(--ok) } .warn { color: var(--warn) } .bad { color: var(--bad) }
 .choice label { display: block; margin: 3px 0; cursor: pointer }
@@ -146,7 +147,7 @@ td.c1 i { display: block; font-size: 12.5px }
 <!-- ============ PAGE 3 ============ -->
 <div class="page hidden" id="page3">
   <h1>Exam document</h1>
-  <p class="muted">Everything you’ve entered, laid out in the department’s exam format: a cover page with the summary of marks, then each section with its marking tool. Copy it into Google Docs or Word, then add your instructions and questions under each section.</p>
+  <p class="muted">Everything you’ve entered, laid out and formatted: a cover page with the summary of marks, then each section with its marking tool. Copy it into Google Docs or Word, then add your instructions and questions under each section.</p>
   <div class="tools noprint"><button class="btn" data-copy="doc">Copy exam document</button><span class="small">Set up each section’s marking tool on the Marking tools page first. Sections start on a new page.</span></div>
   <div class="paper" id="docPreview"></div>
 </div>
@@ -161,7 +162,7 @@ const PLUS = [["4+", 4, 0.97], ["4", 4, 0.90], ["4−", 4, 0.83], ["3+", 3, 0.78
               ["2+", 2, 0.68], ["2", 2, 0.65], ["2−", 2, 0.61], ["1+", 1, 0.58], ["1", 1, 0.55], ["1−", 1, 0.51]];
 const ROUNDNAME = { 1: "whole marks", 0.5: "half marks", 0.25: "quarter marks", 0.1: "tenths" };
 
-const crit = (name, marks) => ({ id: nid(), name, marks, desc: ["", "", "", ""], lo: "", hi: "" });
+const crit = (name, marks) => ({ id: nid(), name, marks, desc: ["", "", "", ""], descPlus: "", lo: "", hi: "" });
 function group(label, count, points, tool) {
   return { id: nid(), label, count, points, tool: tool || "", add4plus: false, stripWords: false, toolMarks: null, lookfors: ["", ""], criteria: [crit(label || "Response", points)], anchors: ["", "", "", ""], selCorrect: 4, selRule: "cancel", selManual: ["", "", "", ""] };
 }
@@ -391,6 +392,13 @@ function marksBox(g, i, j) {
   if (usesCriteria(g)) return `<p class="small">This ${g.tool === "rubric" ? "rubric" : "scale"} adds to <b id="tm${g.id}"></b>. Change it through each criterion’s marks below.</p>`;
   return `<p>${g.tool === "rw" ? "Marks for each correct answer" : g.tool === "select" ? "This question is out of" : "Marks this tool is out of"} <input type="number" class="fill" style="max-width:80px" min="0" step="0.5" data-k="${base}.toolMarks" value="${esc(toolMarks(g))}"></p>`;
 }
+/* rubric columns, highest first; 5 = 4+ */
+const rubricCols = g => (g.add4plus ? [[5, "Level 4+ (90–100%)"], [4, "Level 4 (80–89%)"]] : [[4, "Level 4 (80–100%)"]]).concat([[3, "Level 3 (70–79%)"], [2, "Level 2 (60–69%)"], [1, "Level 1 (50–59%)"]]);
+const mkTxt = v => Array.isArray(v) && v[0] !== v[1] ? stepTxt(v) + " Marks" : MarksWord(Array.isArray(v) ? v[0] : v);
+/* the mark shown in each rubric column for criterion k */
+const rubricMarks = (g, ts, k) => { const lm = ts.lms[k], st = ts.scs[k].steps;
+  return g.add4plus ? { 5: mkTxt(st[4][3]), 4: mkTxt(st[3][3]), 3: MarksWord(lm[3]), 2: MarksWord(lm[2]), 1: MarksWord(lm[1]) }
+                    : { 4: l4Txt(lm) + " Marks", 3: MarksWord(lm[3]), 2: MarksWord(lm[2]), 1: MarksWord(lm[1]) } };
 const plusBox = (g, base) => `<label class="small"><input type="checkbox" data-k="${base}.add4plus" data-struct="1" ${g.add4plus ? "checked" : ""}> Add 4+ (90–100%)</label>`;
 function critNameCell(g, c, k, base, i, j) {
   return `<textarea rows="2" placeholder="Criterion" data-k="${base}.criteria.${k}.name" style="font-weight:700;font-size:14px;min-height:0">${esc(c.name)}</textarea>
@@ -406,10 +414,11 @@ function renderTools() {
     const base = `sections.${i}.groups.${j}`;
     let edit = "";
     if (g.tool === "rubric") {
-      edit = `<table><tr><th style="width:24%">Criteria</th><th>Level 4 (80–100%)</th><th>Level 3 (70–79%)</th><th>Level 2 (60–69%)</th><th>Level 1 (50–59%)</th></tr>
+      const cols = rubricCols(g);
+      edit = `<table><tr><th style="width:${g.add4plus ? 20 : 24}%">Criteria</th>${cols.map(([, h]) => `<th>${h}</th>`).join("")}</tr>
         ${g.criteria.map((c, k) => `<tr><td class="c1">${critNameCell(g, c, k, base, i, j)}</td>
-          ${[4, 3, 2, 1].map((L, q) => `<td><span class="lm" id="lm${c.id}_${L}"></span><textarea placeholder="What it looks like" data-k="${base}.criteria.${k}.desc.${q}">${esc(c.desc[q])}</textarea></td>`).join("")}</tr>`).join("")}
-        </table><div class="tools noprint"><button class="link" data-act="addCrit" data-i="${i}" data-j="${j}">+ Add a criterion</button></div>`;
+          ${cols.map(([L]) => `<td><span class="lm" id="lm${c.id}_${L}"></span><textarea placeholder="What it looks like" data-k="${base}.criteria.${k}.${L === 5 ? "descPlus" : "desc." + (4 - L)}">${esc(L === 5 ? c.descPlus || "" : c.desc[4 - L])}</textarea></td>`).join("")}</tr>`).join("")}
+        </table><div class="tools noprint"><button class="link" data-act="addCrit" data-i="${i}" data-j="${j}">+ Add a criterion</button>${plusBox(g, base)}</div>`;
     } else if (g.tool === "single") {
       edit = `<p class="small">Describe Level 3, the provincial standard, for each criterion. The marker circles a level and writes feedback under Not yet or Beyond.</p>
         <table><tr><th style="width:24%">Criteria</th><th style="width:18%">Not yet<br><span style="font-weight:400;text-transform:none">Level 1–2</span></th><th>Level 3: the standard<br><span style="font-weight:400;text-transform:none">70–79%</span></th><th style="width:18%">Beyond<br><span style="font-weight:400;text-transform:none">Level 4</span></th></tr>
@@ -481,7 +490,7 @@ function toolSummary(g) {
     if (t.missing.length) flags.push(`With ${t.C} correct answer${t.C === 1 ? "" : "s"}, ${t.missing.map(L => "Level " + L).join(" and ")} ${t.missing.length === 1 ? "doesn’t" : "don’t"} show up. Use at least 4 correct answers so every level has room.`);
     return { N, flags, sel: t };
   }
-  const plus = (g.tool === "likert" || g.tool === "holistic") && g.add4plus;
+  const plus = plusOn(g);
   const one = (m, who) => { const sc = scaleSteps(m, r, plus); sc.flags.forEach(L => flags.push(`${who}${L === "4" ? "Level 4 (80–89%) and 4+ can’t both fit" : `Level ${L} can’t land inside its range`} with ${ROUNDNAME[r]}.`)); return sc };
   if (g.tool === "anchors" || g.tool === "holistic") { const sc = one(N, ""), lm = levelMarks(N, r); return { N, scs: [sc], L4: lm[4], L3: lm[3], L2: lm[2], L1: lm[1], flags } }
   const cs = g.criteria, scs = cs.map((c, k) => one(num(c.marks), `“${c.name || "Criterion " + (k + 1)}” (${marksWord(num(c.marks))}): `)), lms = cs.map(c => levelMarks(num(c.marks), r));
@@ -502,7 +511,7 @@ function refresh2() {
     if (!g.tool) { const f = document.getElementById("tf" + g.id); if (f) f.innerHTML = ""; return }
     const ts = toolSummary(g), N = toolMarks(g);
     const tm = document.getElementById("tm" + g.id); if (tm) tm.textContent = marksWord(N);
-    if (g.tool === "rubric") g.criteria.forEach((c, k) => { const lm = ts.lms[k]; [4, 3, 2, 1].forEach(L => { const e = document.getElementById(`lm${c.id}_${L}`); if (e) e.textContent = L === 4 ? l4Txt(lm) + " Marks:" : MarksWord(lm[L]) + ":" }) });
+    if (g.tool === "rubric") g.criteria.forEach((c, k) => { const mk = rubricMarks(g, ts, k); Object.keys(mk).forEach(L => { const e = document.getElementById(`lm${c.id}_${L}`); if (e) e.textContent = mk[L] + ":" }) });
     if (g.tool === "single") g.criteria.forEach((c, k) => { const lm = ts.lms[k], set = (id, t) => { const e = document.getElementById(id); if (e) e.textContent = t };
       set("sn" + c.id, `Level 2: ${MarksWord(lm[2])}`); set("sn1" + c.id, `Level 1: ${MarksWord(lm[1])}`); set("s3" + c.id, `Level 3: ${MarksWord(lm[3])}`); set("sb" + c.id, `Level 4: ${l4Txt(lm)} Marks`) });
     if (g.tool === "select" && selManual(g)) ts.sel.rows.forEach(x => { const e = document.getElementById(`sm${g.id}_${x.L}`); if (e) e.innerHTML = selMarkTxt(x.m, N) });
@@ -514,9 +523,8 @@ function refresh2() {
     const sv = document.getElementById("sv" + g.id); if (sv) sv.innerHTML = stripHTML(g);
     const fixes = [];
     if (Math.abs(N - num(g.points)) > 1e-9) fixes.push(`<button class="link" data-act="useSum" data-i="${i}" data-j="${j}">Make the question worth ${marksWord(N)} (updates the weighting)</button>`, `<button class="link" data-act="scaleCrit" data-i="${i}" data-j="${j}">Keep the question at ${marksWord(num(g.points))}${usesCriteria(g) ? " and scale the criteria" : ""}</button>`);
-    if (r > 0.25 && ts.flags.some(x => /can’t/.test(x))) fixes.push(`<button class="link" data-act="quarter">Switch to quarter marks</button>`);
     const f = document.getElementById("tf" + g.id);
-    if (f) f.innerHTML = ts.flags.length ? ts.flags.map(x => `<p class="note warn">⚠ ${x}</p>`).join("") + (fixes.length ? `<p class="noprint" style="display:flex;gap:16px;flex-wrap:wrap">${fixes.join("")}</p>` : "") : "";
+    if (f) f.innerHTML = ts.flags.length ? ts.flags.map(x => `<p class="note warn">⚠ ${x}</p>`).join("") + (fixes.length ? `<p class="noprint" style="display:flex;gap:16px;flex-wrap:wrap">${fixes.join("")}</p>` : "") + recHTML(g) : "";
   });
   const parts = [];
   allGroups().forEach(({ s, g }) => {
@@ -526,7 +534,7 @@ function refresh2() {
     if (ts.rw) { parts.push(`<p>${name}: marked right or wrong, ${marksWord(N)} for each correct answer.${mism}</p>`); return }
     if (ts.sel) { const t = ts.sel, warn = ts.flags.filter(x => !/^This tool is out of/.test(x));
       parts.push(`<p>${name}: marked with select-all scoring. ${t.manual ? `The teacher set the right and wrong picks for each level. ${t.rows.map(x => `Level ${x.L}${x.txt.trim() ? ` (${esc(x.txt.trim())})` : ""} earns ${Array.isArray(x.m) ? fmt(x.m[0]) + "–" + fmt(x.m[1]) : fmt(x.m)}`).join(", ")}; a blank response earns 0.` : `There are ${t.C} correct answers, and each wrong pick cancels a correct one. ${t.rows.map(x => `${selPick(x, t.C)} earns ${fmt(x.m)} (Level ${x.L})`).join(", ")}; none earns 0.`} ${warn.length ? `<span class="warn">To check: ${warn.join(" ")}</span>` : "Every level lands inside its achievement chart range."}${mism}</p>`); return }
-    const nLook = g.lookfors.filter(x => x.trim()).length, plus = g.add4plus && (g.tool === "likert" || g.tool === "holistic");
+    const nLook = g.lookfors.filter(x => x.trim()).length, plus = plusOn(g);
     const tool = { single: `a single-point rubric with ${g.criteria.length} criteri${g.criteria.length === 1 ? "on" : "a"} (${g.criteria.map(c => fmt(num(c.marks))).join(", ")} marks), Level 3 described`,
                    rubric: `a rubric with ${g.criteria.length} criteri${g.criteria.length === 1 ? "on" : "a"} (${g.criteria.map(c => fmt(num(c.marks))).join(", ")} marks)`,
                    anchors: "points with an anchor mark for each level",
@@ -563,12 +571,14 @@ function toolCopyHTML(gid, prefix = "") {
   const hit = allGroups().find(x => x.g.id === gid); if (!hit) return "";
   const { g } = hit, ts = toolSummary(g), r = num(S.rounding), N = toolMarks(g);
   const { TH, TD, T0, note } = DS, title = t => DS.title(prefix + t);
-  if (g.tool === "rubric")
+  if (g.tool === "rubric") {
+    const cols = rubricCols(g), w = g.add4plus ? "0.97in" : "1.16in";
     return title(`Rubric: ${esc(g.label || "Response")} (${MarksWord(N)})`) + T0 +
-      `<tr><th style="${TH};width:1.16in">Criteria</th><th style="${TH};width:1.16in">Level 4 (80–100%)</th><th style="${TH};width:1.16in">Level 3 (70–79%)</th><th style="${TH};width:1.16in">Level 2 (60–69%)</th><th style="${TH};width:1.16in">Level 1 (50–59%)</th></tr>` +
-      g.criteria.map((c, k) => { const lm = ts.lms[k], v = [l4Txt(lm) + " Marks", MarksWord(lm[3]), MarksWord(lm[2]), MarksWord(lm[1])];
-        return `<tr><td style="${TD}"><b>${esc(c.name)}</b><br><i>(${MarksWord(num(c.marks))})</i></td>${v.map((x, q) => `<td style="${TD}"><b>${x}:</b> ${esc(c.desc[q])}</td>`).join("")}</tr>` }).join("") +
+      `<tr><th style="${TH};width:${w}">Criteria</th>${cols.map(([, h]) => `<th style="${TH};width:${w}">${h}</th>`).join("")}</tr>` +
+      g.criteria.map((c, k) => { const mk = rubricMarks(g, ts, k);
+        return `<tr><td style="${TD};width:${w}"><b>${esc(c.name)}</b><br><i>(${MarksWord(num(c.marks))})</i></td>${cols.map(([L]) => `<td style="${TD};width:${w}"><b>${mk[L]}:</b> ${esc(L === 5 ? c.descPlus || "" : c.desc[4 - L])}</td>`).join("")}</tr>` }).join("") +
       `</table>` + note("A task left blank earns 0. Any attempt earns at least Level 1.");
+  }
   if (g.tool === "single")
     return title(`Single-point rubric: ${esc(g.label || "Response")} (${MarksWord(N)})`) +
       /* fixed widths that add to 6.5 in (a letter page inside 1 in margins) */
@@ -652,6 +662,91 @@ function sumCopyHTML(blank) {
 }
 
 /* ============ checks that link the marking tools back to the weighting ============ */
+/* ============ recommended fix when a level can't land inside its range: the smallest change that clears it ============ */
+const plusOn = g => !!g.add4plus && (g.tool === "likert" || g.tool === "holistic" || g.tool === "rubric");
+const cantFlags = g => g.tool ? toolSummary(g).flags.filter(f => /can’t/.test(f)) : [];
+const fitsAt = (m, r, plus) => m > 0 && !scaleSteps(m, r, plus).flags.length;
+/* nearest criterion marks (half-mark steps, at most 4 marks from each) that add to the total and let every level land */
+function fitCriteria(marks, total, r, plus) {
+  const T = Math.round(total * 100);
+  const cands = marks.map(c => { const o = new Set(); if (fitsAt(c, r, plus)) o.add(r2(c));
+    for (let v = 0.5; v <= total + 1e-9; v += 0.5) if (Math.abs(v - c) <= 4 + 1e-9 && fitsAt(v, r, plus)) o.add(r2(v)); return [...o] });
+  let dp = new Map([[0, { cost: 0, pick: [] }]]);
+  cands.forEach((cs, k) => { const nx = new Map();
+    dp.forEach((st, key) => cs.forEach(v => { const nk = key + Math.round(v * 100); if (nk > T) return;
+      const cost = st.cost + Math.abs(v - marks[k]), cur = nx.get(nk); if (!cur || cost < cur.cost - 1e-9) nx.set(nk, { cost, pick: st.pick.concat(v) }) }));
+    dp = nx });
+  return dp.get(T) || null;
+}
+const levelSig = g => { const t = toolSummary(g); return JSON.stringify([t.L1, t.L2, t.L3, t.L4, t.scs && t.scs.map(x => x.steps.map(y => y[3])), t.sel && t.sel.rows.map(x => x.m)]) };
+const RECS = {};
+const CLOSED = /multiple|choice|\bmc\b|true|false|\bt\s*\/\s*f\b|match|fill|blank|label/i;
+/* how much of the final mark each question (and each criterion inside it) carries, for a given state */
+function finalShares(st) {
+  const tot = s => s.groups.reduce((a, g) => a + num(g.count) * num(g.points), 0), T = st.sections.reduce((a, s) => a + tot(s), 0), EW = num(st.examWeight), out = {};
+  st.sections.forEach(s => {
+    const t = tot(s), W = st.mode === "points" ? (T ? EW * t / T : 0) : (st.unit === "exam" ? num(s.weight) * EW / 100 : num(s.weight));
+    s.groups.forEach(g => { const q = t ? num(g.count) * num(g.points) / t * W : 0, cs = usesCriteria(g) ? g.criteria : [], cm = cs.reduce((a, c) => a + num(c.marks), 0);
+      if (cm > 0) cs.forEach(c => out[g.id + "_" + c.id] = q * num(c.marks) / cm); else out[g.id] = q });
+  });
+  return out;
+}
+/* % of the final mark that moves between parts of the exam if mod() is applied to this question */
+function weightShift(g, mod) {
+  const st = JSON.parse(JSON.stringify(S)), h = st.sections.flatMap(s => s.groups).find(x => x.id === g.id); mod(h);
+  const a = finalShares(S), b = finalShares(st), keys = new Set([...Object.keys(a), ...Object.keys(b)]);
+  let d = 0; keys.forEach(k => d += Math.abs((a[k] || 0) - (b[k] || 0))); return d / 2;
+}
+const shiftTxt = d => d < 0.005 ? "The weighting doesn’t change." : `This moves about ${fmt(d, 2)}% of the final mark between parts of the exam.`;
+function recommendFixes(g, s) {
+  const out = [], flags = cantFlags(g); RECS[g.id] = out; if (!flags.length) return out;
+  const r = num(S.rounding), plus = plusOn(g), N = toolMarks(g), others = allGroups().filter(x => x.g !== g && x.g.tool && x.g.tool !== "rw");
+  const crit = usesCriteria(g) && g.criteria.length > 1;
+  const critList = (ch, h) => ch.map(([c, v]) => `“${esc(c.name || "Criterion")}” ${fmt(num(c.marks))} → ${fmt(v)}`).join(", ");
+  const push = (rank, btn, text, mod) => out.push({ rank, btn, text, apply: () => mod(g) });
+  /* a 1-mark closed question (multiple choice, true/false, matching, fill in the blank) is better marked right or wrong */
+  if (N <= 1 && g.tool !== "select" && CLOSED.test(g.label || ""))
+    push(0, "Mark it right or wrong", `Mark it right or wrong. A question worth ${marksWord(N)} doesn’t have room for four levels, and a closed question like this one is usually right or wrong anyway. Nothing else changes.`, h => { h.tool = "rw" });
+  /* half or quarter marks (tenths are too fine to mark with): no marks or weights change */
+  for (const nr of [0.5, 0.25].filter(x => x < r - 1e-9)) {
+    const before = others.map(x => [cantFlags(x.g).length, levelSig(x.g)]), keep = S.rounding; S.rounding = nr;
+    const fixed = !cantFlags(g).length, worse = others.some((x, k) => cantFlags(x.g).length > before[k][0]), moved = others.filter((x, k) => levelSig(x.g) !== before[k][1]).length;
+    S.rounding = keep;
+    if (fixed && !worse) { push(moved ? 4 : 1, `Switch to ${ROUNDNAME[nr]}`, `Round to ${ROUNDNAME[nr]}. No marks or weights change${moved ? `, though the level marks in ${moved} other tool${moved === 1 ? "" : "s"} shift slightly` : ""}.`, () => { S.rounding = nr }); break }
+  }
+  /* move marks between criteria: the question keeps its total */
+  if (crit) {
+    const f = fitCriteria(g.criteria.map(c => num(c.marks)), N, r, plus);
+    if (f) { const ch = g.criteria.map((c, k) => [c, f.pick[k]]).filter(([c, v]) => Math.abs(num(c.marks) - v) > 1e-9), mod = h => h.criteria.forEach((c, k) => c.marks = f.pick[k]), d = weightShift(g, mod);
+      out.push({ rank: 2, shift: d, btn: "Move the marks", text: `Move marks between criteria: ${critList(ch)}. The question stays at ${marksWord(N)}. ${shiftTxt(d)}`, apply: () => mod(g) }) }
+  }
+  /* 4+ has no room: turn it off */
+  if (plus && flags.every(f => /4\+/.test(f))) push(3, "Turn off 4+", `Turn off 4+ for this tool. At ${marksWord(N)} there isn’t room for both Level 4 (80–89%) and 4+ (90–100%).`, h => { h.add4plus = false });
+  /* change what the question is out of, keeping the criteria in proportion: the value that moves the least weighting */
+  const step = crit && Number.isInteger(N) ? 1 : Math.max(r, 0.5);   /* rubric totals stay whole numbers */
+  let best = null;
+  for (let m = Math.max(2, step * Math.ceil(N / 2 / step)); m <= 2 * N + 1e-9 || m <= 4; m = r2(m + step)) {
+    if (Math.abs(m - N) < 1e-9) continue;
+    let marks = null;
+    if (crit) { const f = fitCriteria(g.criteria.map(c => num(c.marks) * m / N), m, r, plus); if (!f) continue; marks = f.pick }
+    else if (!fitsAt(m, r, plus) || cantFlags(Object.assign(JSON.parse(JSON.stringify(g)), { points: m, toolMarks: null })).length) continue;
+    const mod = h => { h.points = m; h.toolMarks = null; if (marks) h.criteria.forEach((c, k) => c.marks = marks[k]) }, d = weightShift(g, mod);
+    if (!best || d < best.d - 1e-9 || (Math.abs(d - best.d) < 1e-9 && Math.abs(m - N) < Math.abs(best.m - N))) best = { m, marks, mod, d };
+  }
+  if (best) { const { m, marks, mod, d } = best, n = num(g.count), tot = secTotal(s), nt = tot - n * num(g.points) + n * m;
+    const ch = marks ? g.criteria.map((c, k) => [c, marks[k]]).filter(([c, v]) => Math.abs(num(c.marks) - v) > 1e-9) : [];
+    out.push({ rank: crit ? 2 : 5, shift: d, btn: `Make it ${marksWord(m)}`, text: `Make the question out of ${marksWord(m)} instead of ${marksWord(num(g.points))}${ch.length ? ` (${critList(ch)})` : ""}. Section ${esc(s.name)} goes from ${fmt(tot)} to ${fmt(nt)} marks. ${shiftTxt(d)}`, apply: () => mod(g) }) }
+  /* nothing works at this rounding on its own: try quarter marks together with a change */
+  if (!out.length && r > 0.25) {
+    const keep = S.rounding; S.rounding = 0.25; const alt = recommendFixes(g, s); S.rounding = keep;
+    alt.forEach(o => out.push({ rank: o.rank, shift: o.shift, btn: o.btn, text: `Round to quarter marks, and ${o.text.charAt(0).toLowerCase() + o.text.slice(1)}`, apply: () => { S.rounding = 0.25; o.apply() } }));
+    RECS[g.id] = out;
+  }
+  out.sort((a, b) => a.rank - b.rank || (a.shift ?? 0) - (b.shift ?? 0));
+  return out;
+}
+const recLine = (rec, gid) => `<span class="rec"><b>Recommended:</b> ${rec[0].text} <button class="link" data-act="rec" data-g="${gid}" data-n="0">Accept</button>${rec[1] ? `<br><span class="small">Or: ${rec[1].text} <button class="link" data-act="rec" data-g="${gid}" data-n="1">${rec[1].btn}</button></span>` : ""}</span><br>`;
+const recHTML = g => { const s = allGroups().find(x => x.g === g).s, rec = recommendFixes(g, s); return rec.length ? `<p class="note noprint">${recLine(rec, g.id)}</p>` : "" };
 function toolIssues() {
   const out = [], r = num(S.rounding);
   S.sections.forEach((s, i) => s.groups.forEach((g, j) => {
@@ -663,7 +758,7 @@ function toolIssues() {
     const ts = toolSummary(g), rounding = ts.flags.filter(f => /can’t/.test(f));
     if (rounding.length) out.push({ level: "warn", i, j, gid: g.id,
       text: `<b>${where}:</b> with ${ROUNDNAME[r]}, ${rounding.length === 1 ? "one level can’t" : rounding.length + " levels can’t"} land inside its achievement chart range, so a student at that level would get the wrong percentage.`,
-      acts: (r > 0.25 ? [["Switch to quarter marks", "quarter"]] : []).concat([["Open the tool", "goto"]]) });
+      rec: recommendFixes(g, s), acts: [["Open the tool", "goto"]] });
   }));
   return out;
 }
@@ -671,7 +766,7 @@ function renderChecks() {
   const iss = toolIssues(), el = document.getElementById("toolChecks"), tab = document.getElementById("tab2");
   if (tab) tab.innerHTML = "Marking tools (optional)" + (iss.length ? ` <span class="badge">⚠ ${iss.length}</span>` : "");
   if (!el) return;
-  el.innerHTML = !iss.length ? "" : `<div class="checks"><p><b>From your marking tools</b></p>${iss.map(x => `<p class="${x.level === "bad" ? "bad" : ""}">⚠ ${x.text}<br>${x.acts.map(([lab, act]) => `<button class="link" data-act="${act}" data-i="${x.i}" data-j="${x.j}" data-g="${x.gid}">${lab}</button>`).join("")}</p>`).join("")}</div>`;
+  el.innerHTML = !iss.length ? "" : `<div class="checks"><p><b>From your marking tools</b></p>${iss.map(x => `<p class="${x.level === "bad" ? "bad" : ""}">⚠ ${x.text}<br>${x.rec && x.rec.length ? recLine(x.rec, x.gid) : ""}${x.acts.map(([lab, act]) => `<button class="link" data-act="${act}" data-i="${x.i}" data-j="${x.j}" data-g="${x.gid}">${lab}</button>`).join("")}</p>`).join("")}</div>`;
 }
 function scaleCriteria(g) {   /* "keep the question's marks": bring the tool back to them */
   const N = num(g.points), r = num(S.rounding);
@@ -696,7 +791,7 @@ const CAT = /*CAT*/{"LASBO":[0,"American Sign Language as a Second Language, Lev
 const TYPES = { W: "de-streamed", D: "academic", P: "applied", O: "open", L: "locally developed", C: "college", M: "university/college", U: "university", E: "workplace" };
 const A_AREAS = ["English", "Mathematics", "Science", "Canadian and World Studies"];
 const C_AREAS = ["Guidance and Career Education", "Cooperative Education", "Interdisciplinary Studies", "American Sign Language as a Second Language"];
-const CHECK = "Confirm against your department’s course-by-course review.";
+const CHECK = "Verify against the current Ministry reference and adjust any cells accordingly.";
 function findCourse(c) {
   if (CAT[c]) return { area: AREAS[CAT[c][0]], title: CAT[c][1] };
   if (/^L[B-D][A-Z][B-D][DOU]$/.test(c)) return { area: "Classical Studies and International Languages", title: "International Languages, Level " + ("BCD".indexOf(c[3]) + 1) };
@@ -739,7 +834,7 @@ function courseNoteHTML() {
   if (i.bd === "C") out += `<b class="bad">No written exam.</b> The weight is set to 0%. `;
   if (i.special) out += i.special;
   else if (i.bd === "A") out += `Written exam worth ${i.fe}% of the final mark. Design length ${i.len} min (maximum block ${i.max} min).`;
-  else if (i.bd === "B") out += `Written exam about 10% plus a culminating task${i.fe ? ` of ${i.fe - 10}% (${i.fe}% in all)` : ""}. Adjust the weight to your department’s split. The written portion is short: set your own design length and confirm the block with administration.`;
+  else if (i.bd === "B") out += `Written exam about 10% plus a culminating task${i.fe ? ` of ${i.fe - 10}% (${i.fe}% in all)` : ""}. Adjust the weight if your split is different. The written portion is short: set your own design length and confirm the block with administration.`;
   else out += `The final evaluation (${fe}) is a task done in class time: a written evaluation, project, presentation or portfolio.`;
   if (i.levelBased && i.bd !== "C") out += ` This course is organized by level, not grade${/^E(SL|LD)/.test(i.code) ? ", and ESL/ELD isn’t named in the breakdown table" : ""}.`;
   return out + ` <span class="warn">${CHECK}</span>`;
@@ -793,6 +888,7 @@ document.addEventListener("click", e => {
   if (a === "addCrit") { S.sections[i].groups[j].criteria.push(crit("", 0)); renderTools(); refresh2(true); return }
   if (a === "delCrit") { const g = S.sections[i].groups[j]; if (g.criteria.length > 1) { g.criteria.splice(+b.dataset.k2, 1); renderTools(); refresh2(true) } return }
   if (a === "quarter") { S.rounding = 0.25; renderAll(); return }
+  if (a === "rec") { const o = (RECS[+b.dataset.g] || [])[+b.dataset.n || 0]; if (o) { o.apply(); renderAll() } return }
   if (a === "useSum") { const g = S.sections[i].groups[j]; g.points = r2(toolMarks(g)); g.toolMarks = null; renderAll(); return }
   if (a === "addLook") { S.sections[i].groups[j].lookfors.push(""); renderTools(); refresh2(true); return }
   if (a === "delLook") { const g = S.sections[i].groups[j]; if (g.lookfors.length > 1) { g.lookfors.splice(+b.dataset.k2, 1); renderTools(); refresh2(true) } return }
