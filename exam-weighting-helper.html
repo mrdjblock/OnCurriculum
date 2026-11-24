@@ -88,7 +88,7 @@ td.c1 i { display: block; font-size: 12.5px }
   <h2>The exam</h2>
   <table style="max-width:660px">
     <tr><td style="width:55%">Course code<div class="small">Fills in the weight and design length from the DSBN exam guide.</div></td><td><input type="text" class="fill" id="course" maxlength="12" placeholder="e.g. SNC1W" style="max-width:140px;text-transform:uppercase" autocomplete="off"><div class="small" id="courseNote"></div></td></tr>
-    <tr><td style="width:55%">Weight (% of the final mark)<div class="small">Final evaluation: 20% (Grades 9–10) · 25% (Grades 11–12). Exam-and-task courses: about 10% on the exam.</div></td><td><input type="number" class="fill" min="0" max="100" data-k="examWeight" id="examWeight"></td></tr>
+    <tr><td style="width:55%">Weight (% of the final mark)<div class="small">Final evaluation: 20% (Grades 9–10) · 25% (Grades 11–12). Exam-and-task courses: 10% on the exam.</div></td><td><input type="number" class="fill" min="0" max="100" data-k="examWeight" id="examWeight"></td></tr>
     <tr><td>Design length (minutes)</td><td><input type="number" class="fill" min="10" step="5" data-k="designMin" id="designMin"></td></tr>
     <tr><td>Round marks to</td><td><select class="fill" data-k="rounding" id="rounding" style="max-width:180px">
       <option value="1">whole marks</option><option value="0.5">half marks</option><option value="0.25">quarter marks</option><option value="0.1">tenths</option></select></td></tr>
@@ -850,7 +850,7 @@ function courseNoteHTML() {
   if (i.bd === "C") out += `<b class="bad">No written exam.</b> The weight is set to 0%. `;
   if (i.special) out += i.special;
   else if (i.bd === "A") out += `Written exam worth ${i.fe}% of the final mark. Design length ${i.len} min (maximum block ${i.max} min).`;
-  else if (i.bd === "B") out += `Written exam about 10% plus a culminating task${i.fe ? ` of ${i.fe - 10}% (${i.fe}% in all)` : ""}. Adjust the weight if your split is different. The written portion is short: set your own design length and confirm the block with administration.`;
+  else if (i.bd === "B") out += `Written exam 10% plus a culminating task${i.fe ? ` of ${i.fe - 10}% (${i.fe}% in all)` : ""}. The written portion is short: set your own design length and confirm the block with administration.`;
   else out += `The final evaluation (${fe}) is a task done in class time: a written evaluation, project, presentation or portfolio.`;
   if (i.levelBased && i.bd !== "C") out += ` This course is organized by level, not grade${/^E(SL|LD)/.test(i.code) ? ", and ESL/ELD isn’t named in the breakdown table" : ""}.`;
   return out + ` <span class="warn">${CHECK}</span>`;
