@@ -838,7 +838,7 @@ function courseInfo(code) {
   const area = i.area || ({ E: "English", M: "Mathematics", S: "Science", C: "Canadian and World Studies", G: "Guidance and Career Education" }[pre[0]] || (pre.startsWith("ID") ? "Interdisciplinary Studies" : null));
   if ((grade <= 10 && t === "L") || (grade >= 11 && (t === "E" || t === "O")) || C_AREAS.includes(area)) return Object.assign(i, { bd: "C", weight: 0, len: null });
   if (A_AREAS.includes(area) && !(grade >= 11 && area === "Canadian and World Studies")) return Object.assign(i, { bd: "A", weight: i.fe });
-  return Object.assign(i, { bd: "B", weight: grade >= 11 && B15_AREAS.includes(area) ? 15 : 10, len: null });
+  return Object.assign(i, { bd: "B", weight: grade >= 11 && B15_AREAS.includes(area) ? 15 : 10 });
 }
 const BDNAME = { A: "Breakdown A · written exam only", B: "Breakdown B · written exam and culminating task", C: "Breakdown C · culminating task, no written exam" };
 function courseNoteHTML() {
@@ -851,7 +851,7 @@ function courseNoteHTML() {
   if (i.bd === "C") out += `<b class="bad">No written exam.</b> The weight is set to 0%. `;
   if (i.special) out += i.special;
   else if (i.bd === "A") out += `Written exam worth ${i.fe}% of the final mark. Design length ${i.len} min (maximum block ${i.max} min).`;
-  else if (i.bd === "B") out += `Written exam ${i.weight}% plus a culminating task${i.fe ? ` of ${i.fe - i.weight}% (${i.fe}% in all)` : ""}. Set your own design length and confirm the block with administration.`;
+  else if (i.bd === "B") out += `Written exam ${i.weight}% plus a culminating task${i.fe ? ` of ${i.fe - i.weight}% (${i.fe}% in all)` : ""}. ${i.len ? `Design length ${i.len} min (maximum block ${i.max} min).` : "The DSBN guide doesn’t set a design length for level-based courses: set one as a team and confirm the block with administration."}`;
   else out += `The final evaluation (${fe}) is a task done in class time: a written evaluation, project, presentation or portfolio.`;
   if (i.levelBased && i.bd !== "C") out += ` This course is organized by level, not grade${/^E(SL|LD)/.test(i.code) ? ", and ESL/ELD isn’t named in the breakdown table" : ""}.`;
   return out + ` <span class="warn">${CHECK}</span>`;
